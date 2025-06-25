@@ -37,7 +37,13 @@ def image_processing_opencv(image):
     img = cv.GaussianBlur(img, (5, 5), 1.4)
     ret, img_thresholded = cv.threshold(img, 110, 255, cv.THRESH_BINARY)
     print(type(img_thresholded))
-    return img_thresholded
+    # Remove small white noise
+    kernel = np.ones((7, 7), np.uint8)
+    cleaned = cv.morphologyEx(img_thresholded, cv.MORPH_OPEN, kernel)
+
+# Fill small holes
+    cleaned = cv.morphologyEx(cleaned, cv.MORPH_CLOSE, kernel)
+    return cleaned
 
 
 def edge_detection(img):
@@ -47,6 +53,15 @@ def edge_detection(img):
 
 
 def line_extraction(img):
+    """
+    Extracts contours using opencv findContours
+
+    Args:
+        img (ndarray): processed image
+
+    Returns:
+        list: contours found
+    """
     contours, _ = cv.findContours(img, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     print("Contours found: {}", len(contours))
     filtered_contours = []
@@ -76,10 +91,19 @@ def get_paths(image_path):
     if paths:
         print("found paths")
         print("Number of paths found {}".format(len(paths)))
-
+        print("Type of Paths: {}".format(type(paths[0])))
+    return paths
 
 def convert_pyvips_to_numpy(image):
+    """
+    Converts a pyvips.Image to a numpy array
 
+    Args:
+        image (pyvips.Image): image
+
+    Returns:
+        numpy.ndarray: numpy array of image
+    """
     pyvips_im = image
     height = image.height
     width = image.width
