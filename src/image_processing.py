@@ -12,17 +12,25 @@ from svgpathtools import svg2paths
 
 
 def image_processing_pyvips(image):
-    image = image.median(3)
+    
+    image = image.gaussblur(1.5)
     if image.hasalpha():
-        image = image.flatten(background=[255])
-    print(image.get_scale())
+        image = image.flatten(background=[255]).unpremultiply()
+    #print(image.get_scale())
     image = image.colourspace("b-w")
-    image = image < 127
     if image.bands > 1:
         image = image.extract_band(0)
+    
+    #image = image < 128
+    
     image = image.copy(interpretation="b-w")
-
-    return image
+    image = convert_pyvips_to_numpy(image)
+    _, otsu = cv.threshold(image, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    kernel = np.ones((3, 3), np.uint8)
+    cleaned = cv.morphologyEx(otsu, cv.MORPH_OPEN, kernel)
+    cleaned = cv.morphologyEx(cleaned, cv.MORPH_CLOSE, kernel)
+    
+    return cleaned
 
 
 def image_processing_opencv(image):
