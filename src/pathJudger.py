@@ -13,4 +13,90 @@
 # i lean towards option 2 because option 1 seems very computationally expensive, but we will see when
 # we get there
 
-print(":D")
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import time
+
+"""
+TODO:
+function to put the path back together
+"""
+
+
+def judgeDistance(linesList):
+    # for the input image tested with, each run takes
+    # 0.0002129101
+    # could be more efficient, but will do for now
+    distance = 0
+    for line in linesList:
+        start = line[0]
+        try:
+            # capture the distance between segments
+            # (and save time if segment starts where the previous one ends)
+            if start != end:
+                distance += np.sqrt(((start[0] - end[0])**2) + ((start[1] - end[1])**2))
+        except:
+            # on the first iteration, end has not yet been set
+            pass
+        end = line[1]
+        distance += np.sqrt(((start[0] - end[0])**2) + ((start[1] - end[1])**2))
+
+    return distance
+
+
+def processFile(location):
+    with open(location, "r") as file:
+        svgData = file.read()
+
+    lines = []
+    linesOriginal = []
+
+    for line in svgData.splitlines():
+        if line[:8] == "<path d=":   #note this would be unreliable, but were writing the file ourselves
+            temp = line.split(" ")
+            temp.pop(0)
+            temp.pop(0)
+            temp2 = [[float(temp[0]), float(temp[1])], [float(temp[-2]), float(temp[-1][:-3])], len(linesOriginal)]
+            linesOriginal.append(line)
+            lines.append(temp2)
+    
+    return linesOriginal, lines
+
+
+
+def preview(linesList):
+
+    # creates a pyplot graph showing the current path of printer
+    # assumes input in the format:
+    # [[[point1x, point1y], [point2x, point2y], (artitrary beyond these points)], ...]
+    
+    for line in linesList:
+        start = line[0]
+        try:
+            if start != end:
+                plt.plot([start[0], end[0]], [start[1], end[1]], color="blue", linestyle="dashed", zorder=1)
+        except:
+            pass
+        end = line[1]
+        
+        plt.plot([start[0], end[0]], [start[1], end[1]], color="red", linestyle="dashed", zorder=3)
+
+        plt.scatter([start[0], end[0]], [start[1], end[1]], color="black", zorder=2)
+
+    plt.show()
+
+
+def main():
+    print(":D")
+    pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\output.svg"
+    linesFull, linesCoords = processFile(pathGuy)
+    #random.shuffle(linesCoords)
+    timer1 = time.time()
+    print(judgeDistance(linesCoords))
+    timer2 = time.time()
+    print(timer2-timer1)
+    preview(linesCoords)
+
+if __name__ == "__main__":
+    main()
