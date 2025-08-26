@@ -171,8 +171,10 @@ def writeSvg(pathList):
             file.write(line)
             file.write("\n")
 
-"""
-pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\processed_bitmap_image.svg"
+def main():
+    pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\processed_bitmap_image.svg" # your path here
 
-writeSvg(relativeToAbsolute(pathGuy))
-"""
+    writeSvg(relativeToAbsolute(pathGuy))
+
+if __name__ == "__main__":
+    main()
