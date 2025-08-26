@@ -16,18 +16,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import math
 import time
-
-"""
-TODO:
-function to put the path back together
-"""
+from relative_to_absolute import writeSvg
 
 
 def judgeDistance(linesList):
+
     # for the input image tested with, each run takes
-    # 0.0002129101
+    # 0.00021 seconds
     # could be more efficient, but will do for now
+    # over time, comes out roughly 6x faster than previous method
+    # (math.dist is coded in c, so is faster than same code in py)
+
     distance = 0
     for line in linesList:
         start = line[0]
@@ -35,12 +36,12 @@ def judgeDistance(linesList):
             # capture the distance between segments
             # (and save time if segment starts where the previous one ends)
             if start != end:
-                distance += np.sqrt(((start[0] - end[0])**2) + ((start[1] - end[1])**2))
+                distance += math.dist(start, end)
         except:
             # on the first iteration, end has not yet been set
             pass
         end = line[1]
-        distance += np.sqrt(((start[0] - end[0])**2) + ((start[1] - end[1])**2))
+        distance += math.dist(start, end)
 
     return distance
 
@@ -58,8 +59,8 @@ def processFile(location):
             temp.pop(0)
             temp.pop(0)
             temp2 = [[float(temp[0]), float(temp[1])], [float(temp[-2]), float(temp[-1][:-3])], len(linesOriginal)]
-            linesOriginal.append(line)
             lines.append(temp2)
+        linesOriginal.append(line)
     
     return linesOriginal, lines
 
@@ -86,17 +87,52 @@ def preview(linesList):
 
     plt.show()
 
+def restoreFile(linesOriginal, linesMixed):
+    temp2 = np.arange(0, len(linesOriginal))
+    body = []
+    for line in linesMixed:
+        temp = linesOriginal[line[2]].split(" ")
+        #print(temp[2:4])
+        if line[0] == [float(temp[2]), float(temp[3])]:
+            #print("YES")
+            if line[1] == [float(temp[-2]), float(temp[-1][:-3])]:
+                temp2 = np.delete(temp2, np.where(temp2 == line[2]))
+                body.append(linesOriginal[line[2]])
+                pass
+            else:
+                print("ERR 2 ", line, linesOriginal[line[2]])
+        else:
+            print("ERR 1 ", line, linesOriginal[line[2]])
+    print(temp2, "B")
+    stored = -1
+    header = []
+    footer = []
+    for ind in temp2:
+        if ind != stored + 1:
+            break
+        stored = ind
+        header.append(linesOriginal[ind])
+    temp2 = temp2[stored+1:]
+    for ind in temp2:
+        footer.append(linesOriginal[ind])
+    del temp2
+    output = header + body + footer
+    return output
+
 
 def main():
     print(":D")
     pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\output.svg"
     linesFull, linesCoords = processFile(pathGuy)
-    #random.shuffle(linesCoords)
+    random.shuffle(linesCoords)
     timer1 = time.time()
     print(judgeDistance(linesCoords))
     timer2 = time.time()
     print(timer2-timer1)
-    preview(linesCoords)
+    guy = restoreFile(linesFull, linesCoords)
+
+    writeSvg(guy, "output2.svg")
+    #preview(linesCoords)
 
 if __name__ == "__main__":
     main()

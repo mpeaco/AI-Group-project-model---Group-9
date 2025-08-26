@@ -163,8 +163,8 @@ def relativeToAbsolute(file):
     #print(output)
     return output
 
-def writeSvg(pathList):
-    with open("output.svg", "w") as file:
+def writeSvg(pathList, fileName):
+    with open(fileName, "w") as file:
         #for segment in pathList:
         for line in pathList:
             #print(line)
@@ -174,7 +174,7 @@ def writeSvg(pathList):
 def main():
     pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\processed_bitmap_image.svg" # your path here
 
-    writeSvg(relativeToAbsolute(pathGuy))
+    writeSvg(relativeToAbsolute(pathGuy), "output.svg")
 
 if __name__ == "__main__":
     main()
