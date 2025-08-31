@@ -43,10 +43,14 @@ def image_processing_opencv(image):
 
     img = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     img = cv.GaussianBlur(img, (5, 5), 1.4)
-    ret, img_thresholded = cv.threshold(img, 110, 255, cv.THRESH_BINARY)
+    
+    # Try Otsu's automatic thresholding for better results
+    ret, img_thresholded = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    print(f"Otsu threshold value: {ret}")
     print(type(img_thresholded))
-    # Remove small white noise
-    kernel = np.ones((7, 7), np.uint8)
+    
+    # Use smaller kernel to preserve more detail
+    kernel = np.ones((3, 3), np.uint8)
     cleaned = cv.morphologyEx(img_thresholded, cv.MORPH_OPEN, kernel)
 
 # Fill small holes
