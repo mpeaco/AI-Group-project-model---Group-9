@@ -1,12 +1,13 @@
 import cv2 as cv
 import numpy as np
 
-def bitmap_to_vector(bitmap_path):
+def bitmap_to_vector(bitmap_path, output_path=None):
     """
     Convert bitmap to vector using contours instead of potrace
     
     Args:
         bitmap_path (str): Path to bitmap image
+        output_path (str, optional): Path for output SVG file
     Returns:
         str: Path to output SVG file
     """
@@ -42,7 +43,13 @@ def bitmap_to_vector(bitmap_path):
     svg_content.append('</svg>')
     
     # Write SVG file
-    output_path = bitmap_path.replace('.pbm', '.svg')
+    if output_path is None:
+        output_path = bitmap_path.replace('.pbm', '.svg')
+        
+    # Make sure the directory exists
+    import os
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
     with open(output_path, 'w') as f:
         f.writelines(svg_content)
     

@@ -86,14 +86,26 @@ def line_extraction(img):
     return filtered_contours
 
 
-def create_bitmap(img):
+def create_bitmap(img, output_path=None):
     """
-    Needs to create a bitmap from the processed image to save to root
+    Needs to create a bitmap from the processed image to save to specified path
 
     Args:
         img (numpy.ndarray): the processed image to be stored
+        output_path (str, optional): Path to save the bitmap file
+        
+    Returns:
+        str: Path to the saved bitmap file
     """
-    output_filename = "processed_bitmap_image.pbm"
+    if output_path is None:
+        output_filename = "processed_bitmap_image.pbm"
+    else:
+        output_filename = output_path
+        
+    # Make sure the directory exists
+    import os
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+    
     cv.imwrite(output_filename, img)
     return output_filename
 

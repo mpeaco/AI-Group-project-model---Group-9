@@ -74,6 +74,12 @@ def main():
     use_pyvips = args.pyvips
     print(f"\nUsing pyvips: {use_pyvips}")
     
+    # Create a timestamped output folder for this run
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_folder = f"output_results_{timestamp}"
+    os.makedirs(output_folder, exist_ok=True)
+    print(f"Created output folder: {output_folder}")
+    
     sample_images_path = "sample_data"
 
     sample_image = load_sample_images(sample_images_path, use_pyvips=use_pyvips, random_image=False)
@@ -107,16 +113,20 @@ def main():
         cv.imshow("processed image", processed_pyvips_image)
         cv.waitKey(0)
         cv.destroyAllWindows()
-        # Create bitmap and vector
-        file_path = create_bitmap(processed_pyvips_image)
-        output_image_path = cv_bitmap_to_vector(file_path)
+        # Create bitmap and vector in the output folder
+        bitmap_filename = os.path.join(output_folder, "processed_bitmap_image.pbm")
+        file_path = create_bitmap(processed_pyvips_image, bitmap_filename)
+        svg_filename = os.path.join(output_folder, "processed_vector_image.svg")
+        output_image_path = cv_bitmap_to_vector(file_path, svg_filename)
     else:
         cv.imshow("processed image", processed_image)
         cv.waitKey(0)
         cv.destroyAllWindows()
-        # Create bitmap and vector  
-        file_path = create_bitmap(processed_image)
-        output_image_path = cv_bitmap_to_vector(file_path)
+        # Create bitmap and vector in the output folder
+        bitmap_filename = os.path.join(output_folder, "processed_bitmap_image.pbm")
+        file_path = create_bitmap(processed_image, bitmap_filename)
+        svg_filename = os.path.join(output_folder, "processed_vector_image.svg")
+        output_image_path = cv_bitmap_to_vector(file_path, svg_filename)
 
     # Now extract the paths from the image
     paths = get_paths(output_image_path)
@@ -184,10 +194,9 @@ def main():
         # VISUALIZATION: Show processed image and paths
         print("\n=== GENERATING VISUALIZATIONS ===")
         
-        # Create timestamped folder for this run
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_folder = os.path.join("sample_data", "path_optimised_sample", f"run_{timestamp}")
-        os.makedirs(output_folder, exist_ok=True)
+        # Create a visualizations subfolder in our output folder
+        vis_folder = os.path.join(output_folder, "visualizations")
+        os.makedirs(vis_folder, exist_ok=True)
         
         try:
             # Load the processed image for visualization
@@ -197,8 +206,8 @@ def main():
                 processed_img = processed_image
             
             # Create path visualizations with timestamped filenames
-            comparison_path = os.path.join(output_folder, "path_optimization_comparison.png")
-            sequence_path = os.path.join(output_folder, "cutting_sequence_steps.png")
+            comparison_path = os.path.join(vis_folder, "path_optimization_comparison.png")
+            sequence_path = os.path.join(vis_folder, "cutting_sequence_steps.png")
             
             print("Creating path comparison visualization...")
             visualize_paths(cutting_paths, optimized_paths, processed_img, 
@@ -208,13 +217,13 @@ def main():
             create_cutting_sequence_animation(optimized_paths, processed_img,
                                             save_path=sequence_path)
             
-            print(f"✅ Visualizations saved to: {output_folder}")
+            print(f"✅ Visualizations saved to: {vis_folder}")
             
         except Exception as e:
             print(f"Visualization error: {e}")
             # Fallback to simple visualization without processed image
             print("Creating simplified path visualization...")
-            simple_path = os.path.join(output_folder, "path_optimization_simple.png")
+            simple_path = os.path.join(vis_folder, "path_optimization_simple.png")
             visualize_paths(cutting_paths, optimized_paths, None, 
                           save_path=simple_path)
         
@@ -243,11 +252,14 @@ def main():
     
     # Convert SVG to DXF for laser cutting
     print("\n=== DXF CONVERSION ===")
-    dxf_output_path = svg_to_dxf(output_image_path)
+    dxf_output_path = os.path.join(output_folder, "processed_image.dxf")
+    dxf_output_path = svg_to_dxf(output_image_path, dxf_output_path)
     print(f"DXF file created: {dxf_output_path}")
     
-    print(f"\n🎉 Processing complete! Files generated:")
-    print(f"   - Bitmap: processed_bitmap_image.pbm")
+    print(f"\n🎉 Processing complete! Files generated in folder: {output_folder}")
+    print(f"   - Bitmap: {os.path.basename(bitmap_filename)}")
+    print(f"   - Vector: {os.path.basename(svg_filename)}")
+    print(f"   - DXF: {os.path.basename(dxf_output_path)}")
     print(f"   - Vector: {output_image_path}")
     print(f"   - DXF: {dxf_output_path}")
     if 'output_folder' in locals():
