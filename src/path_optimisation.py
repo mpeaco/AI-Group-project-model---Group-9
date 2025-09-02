@@ -1,51 +1,64 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import os
 from typing import List, Dict
-from dataclasses import dataclass
 
 
-@dataclass
+# class for a point in the cutting path
 class CuttingPoint:
-    """Represents a point in the cutting path with metadata"""
-    x: float
-    y: float
-    is_pierce: bool = False
-    operation_type: str = "cut"  # cut, engrave, mark
+    def __init__(self, x, y, is_pierce=False, operation_type="cut"):
+        # Basic properties of a point
+        self.x = x  # x coordinate
+        self.y = y  # y coordinate
+        self.is_pierce = is_pierce  
+        self.operation_type = operation_type  
     
-    def distance_to(self, other: 'CuttingPoint') -> float:
+    # Calculate distance between two points using pythagoras
+    def distance_to(self, other):
+        # Old way I found
+        # dx = self.x - other.x
+        # dy = self.y - other.y
+        # dist = math.sqrt(dx*dx + dy*dy)
+        
+        # direct way:
         return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
 
 
-@dataclass
+# Class to represent a cutting path
 class CuttingPath:
-    """Represents a complete cutting path with optimization data"""
-    points: List[CuttingPoint]
-    is_closed: bool = False
-    priority: int = 1  # 1 = highest priority
+    def __init__(self, points, is_closed=False, priority=1):
+        # List of points in the path
+        self.points = points
+        # Is the path closed (first point connects to last point)
+        self.is_closed = is_closed
+        # Priority of cutting (1 is highest)
+        self.priority = priority
     
-    def length(self) -> float:
+    # Calculate the total length of the path
+    def length(self):
         """Calculate total path length"""
+        # If don't have at least 2 points, return 0
         if len(self.points) < 2:
             return 0.0
         
+        # Add up all the distances between consecutive points
         total = 0.0
         for i in range(len(self.points) - 1):
             total += self.points[i].distance_to(self.points[i + 1])
         
+        # If the path is closed, add the distance from last point back to first
         if self.is_closed and len(self.points) > 2:
             total += self.points[-1].distance_to(self.points[0])
         
         return total
 
 
-def visualize_paths(original_paths: List[CuttingPath], 
-                   optimized_paths: List[CuttingPath] = None, 
-                   processed_image: np.ndarray = None,
-                   save_path: str = "path_visualization.png"):
+# Basic visualization
+def visualize_paths(original_paths, optimized_paths=None, processed_image=None, save_path="path_visualization.png"):
     """
     Visualize the cutting paths and optimization results
-    
+
     Args:
         original_paths: Original cutting paths
         optimized_paths: Optimized cutting paths (optional)
@@ -54,118 +67,125 @@ def visualize_paths(original_paths: List[CuttingPath],
     """
     fig_width = 15 if optimized_paths else 10
     fig, axes = plt.subplots(1, 2 if optimized_paths else 1, figsize=(fig_width, 8))
-    
+
     if not isinstance(axes, np.ndarray):
         axes = [axes]
-    
+
     colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray']
-    
+
     # Plot original paths
     ax1 = axes[0]
-    
+
     # Show processed image as background if provided
     if processed_image is not None:
         ax1.imshow(processed_image, cmap='gray', alpha=0.3, origin='upper')
-    
+
     # Plot original paths
     for i, path in enumerate(original_paths):
         if not path.points:
             continue
-            
+
         x_coords = [p.x for p in path.points]
         y_coords = [p.y for p in path.points]
-        
+
         color = colors[i % len(colors)]
-        ax1.plot(x_coords, y_coords, color=color, linewidth=2, 
+        ax1.plot(x_coords, y_coords, color=color, linewidth=2,
                 label=f'Path {i+1} ({len(path.points)} pts)')
-        
+
         # Mark start and end points
         if path.points:
-            ax1.scatter(path.points[0].x, path.points[0].y, 
+            ax1.scatter(path.points[0].x, path.points[0].y,
                        color=color, s=100, marker='o', edgecolor='black', linewidth=2)
-            ax1.scatter(path.points[-1].x, path.points[-1].y, 
+            ax1.scatter(path.points[-1].x, path.points[-1].y,
                        color=color, s=100, marker='s', edgecolor='black', linewidth=2)
-    
+
     ax1.set_title('Original Paths', fontsize=14, fontweight='bold')
     ax1.set_xlabel('X (pixels)')
     ax1.set_ylabel('Y (pixels)')
     ax1.legend()
     ax1.grid(True, alpha=0.3)
     ax1.set_aspect('equal')
-    
+
     # Plot optimized paths if provided
     if optimized_paths:
         ax2 = axes[1]
-        
+
         # Show processed image as background
         if processed_image is not None:
             ax2.imshow(processed_image, cmap='gray', alpha=0.3, origin='upper')
-        
+
         # Plot optimized paths with travel moves
         current_pos = CuttingPoint(0, 0)  # Start at origin
-        
+
         for i, path in enumerate(optimized_paths):
             if not path.points:
                 continue
-                
+
             x_coords = [p.x for p in path.points]
             y_coords = [p.y for p in path.points]
-            
+
             color = colors[i % len(colors)]
-            
+
             # Draw travel move (dashed line)
             if i > 0 or (current_pos.x != path.points[0].x or current_pos.y != path.points[0].y):
-                ax2.plot([current_pos.x, path.points[0].x], 
-                        [current_pos.y, path.points[0].y], 
+                ax2.plot([current_pos.x, path.points[0].x],
+                        [current_pos.y, path.points[0].y],
                         'k--', alpha=0.5, linewidth=1, label='Travel' if i == 0 else "")
-            
+
             # Draw cutting path
-            ax2.plot(x_coords, y_coords, color=color, linewidth=2, 
+            ax2.plot(x_coords, y_coords, color=color, linewidth=2,
                     label=f'Path {i+1}')
-            
+
             # Mark start and end points
-            ax2.scatter(path.points[0].x, path.points[0].y, 
+            ax2.scatter(path.points[0].x, path.points[0].y,
                        color=color, s=100, marker='o', edgecolor='black', linewidth=2)
-            ax2.scatter(path.points[-1].x, path.points[-1].y, 
+            ax2.scatter(path.points[-1].x, path.points[-1].y,
                        color=color, s=100, marker='s', edgecolor='black', linewidth=2)
-            
+
             # Add path number
             center_x = sum(p.x for p in path.points) / len(path.points)
             center_y = sum(p.y for p in path.points) / len(path.points)
-            ax2.text(center_x, center_y, str(i+1), 
-                    fontsize=12, fontweight='bold', 
+            ax2.text(center_x, center_y, str(i+1),
+                    fontsize=12, fontweight='bold',
                     bbox=dict(boxstyle="round,pad=0.3", facecolor='white', alpha=0.8))
-            
+
             current_pos = path.points[-1]
-        
+
         ax2.set_title('Optimized Paths (with cutting sequence)', fontsize=14, fontweight='bold')
         ax2.set_xlabel('X (pixels)')
         ax2.set_ylabel('Y (pixels)')
         ax2.legend()
         ax2.grid(True, alpha=0.3)
         ax2.set_aspect('equal')
-    
+
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     print(f"Path visualization saved to: {save_path}")
-    plt.show()
+    plt.close()
 
 
-def create_cutting_sequence_animation(optimized_paths: List[CuttingPath], 
-                                    processed_image: np.ndarray = None,
-                                    save_path: str = "cutting_sequence.png"):
+def create_cutting_sequence_animation(optimized_paths, processed_image=None, output_dir=None, save_path=None):
     """
     Create a step-by-step visualization of the cutting sequence
-    
+
     Args:
         optimized_paths: Optimized cutting paths
         processed_image: Processed binary image (optional)
-        save_path: Path to save the animation frames
+        output_dir: Directory to save the visualization
+        save_path: Complete path to save the visualization (overrides output_dir)
     """
+    # Determine output path
+    if save_path:
+        output_path = save_path
+    elif output_dir:
+        output_path = os.path.join(output_dir, "cutting_sequence_steps.png")
+    else:
+        output_path = "cutting_sequence_steps.png"
+    
     n_paths = len(optimized_paths)
     cols = min(4, n_paths)
     rows = (n_paths + cols - 1) // cols
-    
+
     fig, axes = plt.subplots(rows, cols, figsize=(4*cols, 4*rows))
     if rows == 1 and cols == 1:
         axes = [axes]
@@ -173,304 +193,237 @@ def create_cutting_sequence_animation(optimized_paths: List[CuttingPath],
         axes = axes.flatten()
     else:
         axes = axes.flatten()
-    
+
     colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray']
     current_pos = CuttingPoint(0, 0)
-    
+
     for step in range(n_paths):
         ax = axes[step]
-        
+
         # Show processed image as background
         if processed_image is not None:
             ax.imshow(processed_image, cmap='gray', alpha=0.3, origin='upper')
-        
+
         # Draw all previous paths in gray
         for i in range(step):
             path = optimized_paths[i]
             x_coords = [p.x for p in path.points]
             y_coords = [p.y for p in path.points]
             ax.plot(x_coords, y_coords, 'gray', linewidth=1, alpha=0.5)
-        
+
         # Draw current path in color
         current_path = optimized_paths[step]
         x_coords = [p.x for p in current_path.points]
         y_coords = [p.y for p in current_path.points]
-        
+
         color = colors[step % len(colors)]
         ax.plot(x_coords, y_coords, color=color, linewidth=3)
-        
+
         # Draw travel move to this path
         if step > 0:
             prev_end = optimized_paths[step-1].points[-1]
-            ax.plot([prev_end.x, current_path.points[0].x], 
-                   [prev_end.y, current_path.points[0].y], 
+            ax.plot([prev_end.x, current_path.points[0].x],
+                   [prev_end.y, current_path.points[0].y],
                    'k--', alpha=0.7, linewidth=2)
-        
+
         # Mark start point
-        ax.scatter(current_path.points[0].x, current_path.points[0].y, 
+        ax.scatter(current_path.points[0].x, current_path.points[0].y,
                   color='green', s=150, marker='o', edgecolor='black', linewidth=2)
-        
-        ax.set_title(f'Step {step+1}: Path {step+1}\nLength: {current_path.length():.1f}mm', 
+
+        ax.set_title(f'Step {step+1}: Path {step+1}\nLength: {current_path.length():.1f}mm',
                     fontsize=12, fontweight='bold')
         ax.set_aspect('equal')
         ax.grid(True, alpha=0.3)
-    
+
     # Hide unused subplots
     for i in range(n_paths, len(axes)):
         axes[i].set_visible(False)
-    
+
     plt.tight_layout()
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    print(f"Cutting sequence visualization saved to: {save_path}")
-    plt.show()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Cutting sequence visualization saved to: {output_path}")
+    plt.close()
 
 
 class PathOptimizer:
-    """Main class for optimizing cutting paths for laser cutting machines"""
+    # Optimizer for cutting paths
+
+    def __init__(self, machine_config=None):
+        # Basic settings
+        if machine_config is None:
+            self.machine_config = {
+                'max_speed': 12000,  # mm/min
+                'pierce_time': 0.5,  # seconds
+                'travel_speed': 20000,  # mm/min
+            }
+            print("DEBUG - PathOptimizer initialized with default settings:", self.machine_config)
+        else:
+            self.machine_config = machine_config
+            print("DEBUG - PathOptimizer initialized with custom settings:", self.machine_config)
     
-    def __init__(self, machine_config: Dict = None):
-        self.machine_config = machine_config or {
-            'max_speed': 1000,  # mm/min
-            'pierce_time': 0.5,  # seconds
-            'travel_speed': 5000,  # mm/min
-            'kerf_width': 0.1,  # mm
-            'lead_in_length': 2.0,  # mm
-            'lead_out_length': 2.0  # mm
-        }
-    
-    def nearest_neighbor_tsp(self, paths: List[CuttingPath]) -> List[CuttingPath]:
-        """
-        Solve TSP using nearest neighbor algorithm for path ordering
-        
-        Args:
-            paths: List of cutting paths to optimize
-            
-        Returns:
-            Optimized list of paths
-        """
+    # Find the best order of paths
+    def nearest_neighbor_tsp(self, paths):
+        # Nothing to do for 0 or 1 paths
         if len(paths) <= 1:
             return paths
         
-        optimized_paths = []
-        remaining_paths = paths.copy()
-        current_position = CuttingPoint(0, 0)  # Assume origin start
+        result = []
+        paths_left = paths.copy()
+        current_pos = CuttingPoint(0, 0)  
         
-        while remaining_paths:
+        # Process all paths
+        while paths_left:
             # Find nearest path
-            min_distance = float('inf')
-            nearest_path = None
-            nearest_idx = -1
+            nearest_idx = 0
+            min_dist = float('inf')
             
-            for idx, path in enumerate(remaining_paths):
+            # Check each path
+            for i in range(len(paths_left)):
+                path = paths_left[i]
                 if not path.points:
                     continue
-                
-                # Check distance to start and end of path
-                start_dist = current_position.distance_to(path.points[0])
-                end_dist = current_position.distance_to(path.points[-1])
-                
-                # Choose closest point
-                if start_dist < min_distance:
-                    min_distance = start_dist
-                    nearest_path = path
-                    nearest_idx = idx
-                    reverse_path = False
-                
-                if end_dist < min_distance:
-                    min_distance = end_dist
-                    nearest_path = path
-                    nearest_idx = idx
-                    reverse_path = True
+
+                # Distance calculation
+                start = path.points[0]
+                dist = math.sqrt((current_pos.x - start.x)**2 + (current_pos.y - start.y)**2)
+                if dist < min_dist:
+                    min_dist = dist
+                    nearest_idx = i
             
-            if nearest_path:
-                # Reverse path if needed for optimal direction
-                if reverse_path:
-                    nearest_path.points.reverse()
-                
-                optimized_paths.append(nearest_path)
-                current_position = nearest_path.points[-1]
-                remaining_paths.pop(nearest_idx)
+            # Store nearest path to result
+            best_path = paths_left[nearest_idx]
+            result.append(best_path)
+            
+            # Update position 
+            if best_path.points:
+                current_pos = best_path.points[-1]
+            paths_left.pop(nearest_idx)
         
-        return optimized_paths
+        return result
     
-    def add_lead_in_out(self, path: CuttingPath) -> CuttingPath:
-        """
-        Add lead-in and lead-out paths for clean cutting
-        
-        Args:
-            path: Original cutting path
-            
-        Returns:
-            Path with lead-in/out added
-        """
-        if len(path.points) < 2:
-            return path
-        
-        lead_length = self.machine_config['lead_in_length']
-        
-        # Calculate lead-in direction (perpendicular to first segment)
-        first_point = path.points[0]
-        second_point = path.points[1]
-        
-        dx = second_point.x - first_point.x
-        dy = second_point.y - first_point.y
-        length = math.sqrt(dx**2 + dy**2)
-        
-        if length > 0:
-            # Perpendicular vector for lead-in
-            perp_x = -dy / length * lead_length
-            perp_y = dx / length * lead_length
-            
-            lead_in_point = CuttingPoint(
-                first_point.x + perp_x,
-                first_point.y + perp_y,
-                is_pierce=True
-            )
-            
-            # Add lead-in
-            path.points.insert(0, lead_in_point)
-            
-            # Add lead-out (same but at end)
-            last_point = path.points[-1]
-            second_last = path.points[-2]
-            
-            dx = last_point.x - second_last.x
-            dy = last_point.y - second_last.y
-            length = math.sqrt(dx**2 + dy**2)
-            
-            if length > 0:
-                perp_x = dy / length * lead_length
-                perp_y = -dx / length * lead_length
-                
-                lead_out_point = CuttingPoint(
-                    last_point.x + perp_x,
-                    last_point.y + perp_y
-                )
-                
-                path.points.append(lead_out_point)
-        
-        return path
-    
-    def calculate_cutting_time(self, paths: List[CuttingPath]) -> Dict:
-        """
-        Calculate estimated cutting time for all paths
-        
-        Args:
-            paths: List of optimized cutting paths
-            
-        Returns:
-            Dictionary with time breakdown
-        """
-        total_cut_time = 0.0
-        total_travel_time = 0.0
-        total_pierce_time = 0.0
+    # Calculate time 
+    def calculate_cutting_time(self, paths):
+        # Time calculation
+        total_distance = 0
         pierce_count = 0
         
-        current_pos = CuttingPoint(0, 0)
-        
+        # Add up distances
         for path in paths:
-            if not path.points:
-                continue
-            
-            # Travel time to start of path
-            travel_distance = current_pos.distance_to(path.points[0])
-            total_travel_time += travel_distance / self.machine_config['travel_speed'] * 60
-            
-            # Pierce time
-            total_pierce_time += self.machine_config['pierce_time']
-            pierce_count += 1
-            
-            # Cutting time
-            cut_distance = path.length()
-            total_cut_time += cut_distance / self.machine_config['max_speed'] * 60
-            
-            current_pos = path.points[-1]
+            if path.points:
+                total_distance += path.length()
+                pierce_count += 1
+
+        # Time calculation
+        cut_time = total_distance / self.machine_config['max_speed'] * 60
+        pierce_time = pierce_count * self.machine_config['pierce_time']
+        total_time = cut_time + pierce_time
         
         return {
-            'total_time': total_cut_time + total_travel_time + total_pierce_time,
-            'cutting_time': total_cut_time,
-            'travel_time': total_travel_time,
-            'pierce_time': total_pierce_time,
+            'total_time': total_time,
             'pierce_count': pierce_count,
-            'total_distance': sum(path.length() for path in paths)
+            'total_distance': total_distance
         }
+        
+    def add_lead_in_out(self, path, lead_length=5.0, lead_angle=45.0):
+        """
+        Add simple lead-in and lead-out segments to a cutting path.
+        
+        Args:
+            path (CuttingPath): The original cutting path
+            lead_length (float): Length of the lead-in/out segment in mm
+            lead_angle (float): Angle of approach/exit in degrees
+            
+        Returns:
+            CuttingPath: Path with added lead-in/out points
+        """
+        # If path is empty or too short, return unchanged
+        if not path.points or len(path.points) < 2:
+            return path
+            
+        # Create new points list
+        new_points = []
+        
+        # Get first point
+        first_point = path.points[0]
+        
+        # Only add lead-in/out for closed paths
+        if path.is_closed:
+            # Simple approach - add points at 45 degrees from first point
+            # Calculate lead-in point (5mm away at 45 degrees)
+            lead_in_x = first_point.x - lead_length
+            lead_in_y = first_point.y - lead_length
+            lead_in = CuttingPoint(lead_in_x, lead_in_y, is_pierce=True)
+            
+            # Calculate lead-out point (5mm away at opposite 45 degrees)
+            lead_out_x = first_point.x + lead_length
+            lead_out_y = first_point.y - lead_length
+            lead_out = CuttingPoint(lead_out_x, lead_out_y)
+            
+            # Build new path: lead-in -> original points -> lead-out
+            new_points.append(lead_in)
+            new_points.extend(path.points)
+            new_points.append(lead_out)
+        else:
+            # For open paths, just mark first point as pierce point
+            first_point.is_pierce = True
+            new_points = path.points
+        
+        # Return new path with same properties
+        return CuttingPath(new_points, path.is_closed, path.priority)
 
 
 def process_path(path):
-    """
-    Takes the path that has been extracted
-    Processes to make it useable for optimising
-
-    Args:
-        path (svgpathtools.path.Path): path extracted from image
-
-    Returns:
-        CuttingPath: the path that has been processed for laser cutting
-    """
+    # Convert SVG path to cutting path
     points = []
     
-    # Convert SVG path segments to cutting points
+    # Extract points from segments
     for segment in path:
-        start_point = CuttingPoint(
-            segment.start.real,
-            segment.start.imag
-        )
-        end_point = CuttingPoint(
-            segment.end.real,
-            segment.end.imag
-        )
+        # Create points for start and end
+        start = CuttingPoint(segment.start.real, segment.start.imag)
+        end = CuttingPoint(segment.end.real, segment.end.imag)
         
-        if not points or points[-1].distance_to(start_point) > 0.1:
-            points.append(start_point)
-        points.append(end_point)
+        # Add points to the list
+        points.append(start)
+        points.append(end)
     
-    # Determine if path is closed
+    # Check if path is closed
     is_closed = False
     if len(points) > 2:
-        is_closed = points[0].distance_to(points[-1]) < 1.0
+        # If first and last points are close then is_closed = True
+        first = points[0]
+        last = points[-1]
+        dist = math.sqrt((first.x - last.x)**2 + (first.y - last.y)**2)
+        if dist < 1.0:
+            is_closed = True
     
-    cutting_path = CuttingPath(points=points, is_closed=is_closed)
-    
-    return cutting_path
+    # Create cutting path object
+    return CuttingPath(points, is_closed)
 
 
-def optimize_cutting_sequence(paths: List[CuttingPath], 
-                             method: str = "nearest_neighbor") -> List[CuttingPath]:
-    """
-    Optimize the sequence of cutting paths for minimum travel time
-    
-    Args:
-        paths: List of cutting paths
-        method: Optimization method ("nearest_neighbor")
-        
-    Returns:
-        Optimized list of cutting paths
-    """
+def optimize_cutting_sequence(paths, method="nearest_neighbor"):
+    # Optimize the order of cutting paths
     optimizer = PathOptimizer()
     return optimizer.nearest_neighbor_tsp(paths)
 
 
-def generate_cutting_report(paths: List[CuttingPath]) -> Dict:
-    """
-    Generate comprehensive cutting report with metrics
-    
-    Args:
-        paths: List of optimized cutting paths
-        
-    Returns:
-        Dictionary with cutting analysis
-    """
+def generate_cutting_report(paths):
+    # Report withmetrics
     optimizer = PathOptimizer()
-    time_analysis = optimizer.calculate_cutting_time(paths)
+    time_info = optimizer.calculate_cutting_time(paths)
+
+    # Report dictionary
+    total_length = 0
+    for p in paths:
+        if p.points:
+            total_length += p.length()
     
-    total_length = sum(path.length() for path in paths)
-    path_count = len(paths)
-    
-    return {
-        'path_count': path_count,
+    report = {
+        'path_count': len(paths),
         'total_cutting_length': total_length,
-        'estimated_time_minutes': time_analysis['total_time'],
-        'pierce_count': time_analysis['pierce_count'],
+        'estimated_time_minutes': time_info['total_time'],
+        'pierce_count': time_info['pierce_count'],
         'paths': paths
     }
+    
+    return report
 

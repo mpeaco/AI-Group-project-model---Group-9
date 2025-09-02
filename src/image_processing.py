@@ -38,7 +38,6 @@ def image_processing_opencv(image):
     Takes an image and converts to greyscale
     perform smoothing
     threshold
-
     """
 
     img = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
