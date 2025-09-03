@@ -52,20 +52,12 @@ class CuttingPath:
 
 
 class PathOptimizer:
-    # Optimizer for cutting paths
+    # Optimizer for cutting paths - focused on path optimization only
 
-    def __init__(self, machine_config=None):
-        # Basic settings
-        if machine_config is None:
-            self.machine_config = {
-                'max_speed': 12000,  # mm/min
-                'pierce_time': 0.5,  # seconds
-                'travel_speed': 20000,  # mm/min
-            }
-            print("DEBUG - PathOptimizer initialized with default settings:", self.machine_config)
-        else:
-            self.machine_config = machine_config
-            print("DEBUG - PathOptimizer initialized with custom settings:", self.machine_config)
+    def __init__(self):
+        # PathOptimizer now focuses only on path optimization
+        # Time calculations are handled by CuttingDepthManager with material profiles
+        pass
     
     # Find the best order of paths
     def nearest_neighbor_tsp(self, paths):
@@ -106,29 +98,6 @@ class PathOptimizer:
             paths_left.pop(nearest_idx)
         
         return result
-    
-    # Calculate time 
-    def calculate_cutting_time(self, paths):
-        # Time calculation
-        total_distance = 0
-        pierce_count = 0
-        
-        # Add up distances
-        for path in paths:
-            if path.points:
-                total_distance += path.length()
-                pierce_count += 1
-
-        # Time calculation
-        cut_time = total_distance / self.machine_config['max_speed'] * 60
-        pierce_time = pierce_count * self.machine_config['pierce_time']
-        total_time = cut_time + pierce_time
-        
-        return {
-            'total_time': total_time,
-            'pierce_count': pierce_count,
-            'total_distance': total_distance
-        }
         
     def add_lead_in_out(self, path, lead_length=5.0, lead_angle=45.0):
         """
@@ -210,26 +179,4 @@ def optimize_cutting_sequence(paths, method="nearest_neighbor"):
     # Optimize the order of cutting paths
     optimizer = PathOptimizer()
     return optimizer.nearest_neighbor_tsp(paths)
-
-
-def generate_cutting_report(paths):
-    # Report withmetrics
-    optimizer = PathOptimizer()
-    time_info = optimizer.calculate_cutting_time(paths)
-
-    # Report dictionary
-    total_length = 0
-    for p in paths:
-        if p.points:
-            total_length += p.length()
-    
-    report = {
-        'path_count': len(paths),
-        'total_cutting_length': total_length,
-        'estimated_time_minutes': time_info['total_time'],
-        'pierce_count': time_info['pierce_count'],
-        'paths': paths
-    }
-    
-    return report
 

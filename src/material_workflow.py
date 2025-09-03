@@ -1,6 +1,6 @@
 import json
 from material_profiles import get_material_list, get_material_profile
-from cutting_depth_manager import CuttingDepthManager, get_depth_presets
+from cutting_depth_manager import CuttingDepthManager, DEPTH_PRESETS
 
 # This function lets user choose a material from the list
 def choose_material():
@@ -32,7 +32,7 @@ def setup_cutting(paths, material_id):
     print("Material: " + profile['name'] + " - " + str(len(paths)) + " paths")
     
     # get all the cutting presets
-    presets = get_depth_presets()
+    presets = DEPTH_PRESETS
     operations = list(presets.items())
     
     print("\nOperations:")
