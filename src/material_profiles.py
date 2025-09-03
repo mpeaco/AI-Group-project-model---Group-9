@@ -74,7 +74,7 @@ MATERIAL_PROFILES = {
         "name": "Acrylic 3mm",
         "thickness": 3.0,
         "cut_speed": 300,
-        "cut_power": 70,  # Good for clear/white acrylic
+        "cut_power": 70,  # Lower power to avoid melting
         "cut_passes": 1,
         "engrave_speed": 1500,
         "engrave_power": 40,

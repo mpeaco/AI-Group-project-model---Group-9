@@ -14,10 +14,7 @@
 # we get there
 
 import numpy as np
-import matplotlib.pyplot as plt
-import random
 import math
-import time
 from relative_to_absolute import writeSvg
 
 
@@ -65,45 +62,22 @@ def processFile(location):
     return linesOriginal, lines
 
 
-
-def preview(linesList):
-
-    # creates a pyplot graph showing the current path of printer
-    # assumes input in the format:
-    # [[[point1x, point1y], [point2x, point2y], (artitrary beyond these points)], ...]
-    
-    for line in linesList:
-        start = line[0]
-        try:
-            if start != end:
-                plt.plot([start[0], end[0]], [start[1], end[1]], color="blue", linestyle="dashed", zorder=1)
-        except:
-            pass
-        end = line[1]
-        
-        plt.plot([start[0], end[0]], [start[1], end[1]], color="red", linestyle="dashed", zorder=3)
-
-        plt.scatter([start[0], end[0]], [start[1], end[1]], color="black", zorder=2)
-
-    plt.show()
-
 def restoreFile(linesOriginal, linesMixed):
     temp2 = np.arange(0, len(linesOriginal))
     body = []
     for line in linesMixed:
         temp = linesOriginal[line[2]].split(" ")
-        #print(temp[2:4])
         if line[0] == [float(temp[2]), float(temp[3])]:
-            #print("YES")
             if line[1] == [float(temp[-2]), float(temp[-1][:-3])]:
                 temp2 = np.delete(temp2, np.where(temp2 == line[2]))
                 body.append(linesOriginal[line[2]])
                 pass
             else:
-                print("ERR 2 ", line, linesOriginal[line[2]])
+                # Error in line end coordinates
+                pass
         else:
-            print("ERR 1 ", line, linesOriginal[line[2]])
-    print(temp2, "B")
+            # Error in line start coordinates  
+            pass
     stored = -1
     header = []
     footer = []
@@ -118,21 +92,3 @@ def restoreFile(linesOriginal, linesMixed):
     del temp2
     output = header + body + footer
     return output
-
-
-def main():
-    print(":D")
-    pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\output.svg"
-    linesFull, linesCoords = processFile(pathGuy)
-    random.shuffle(linesCoords)
-    timer1 = time.time()
-    print(judgeDistance(linesCoords))
-    timer2 = time.time()
-    print(timer2-timer1)
-    guy = restoreFile(linesFull, linesCoords)
-
-    writeSvg(guy, "output2.svg")
-    #preview(linesCoords)
-
-if __name__ == "__main__":
-    main()

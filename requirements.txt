@@ -1,0 +1,9 @@
+matplotlib
+numpy
+scipy
+pillow
+opencv-python
+scikit-image
+svgpathtools
+pyvips
+ezdxf
