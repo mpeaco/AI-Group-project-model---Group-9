@@ -95,10 +95,8 @@ def relativeToAbsolute(file):
                 temp = [float(seg) for seg in temp if seg != '']
                 if len(temp) == 2:
                     currentPosition, storedPosition = temp, temp
-                    #output.append(("<path d=\"M" + str(currentPosition[0]) + " " + str(currentPosition[1]) + "\"/>"))
                 else:
-                    # Error in M command format
-                    pass
+                    print("error")
             
             elif line[0] == "m":
                 temp = line.split(" ")
@@ -107,10 +105,8 @@ def relativeToAbsolute(file):
                 if len(temp) == 2:
                     instruct, currentPosition = operatem(temp, currentPosition)
                     storedPosition = currentPosition
-                    #output.append(("<path d=\"M" + instruct + "\"/>"))
                 else:
-                    # Error in m command format
-                    pass
+                    print("error")
 
 
             elif line[0] == "c":
@@ -124,8 +120,7 @@ def relativeToAbsolute(file):
                         arc, currentPosition = operatec(temp[k:k+6], currentPosition)
                         output.append((temp2 + arc + "\"/>"))
                 else:
-                    # Error in c command format
-                    pass
+                    print("error")
             
             elif line[0] == "l":
                 temp = line.split(" ")
@@ -137,8 +132,7 @@ def relativeToAbsolute(file):
                         lineOutput, currentPosition = operatel(temp[k:k+2], currentPosition)
                         output.append((temp2 + lineOutput + "\"/>"))
                 else:
-                    # Error in l command format
-                    pass
+                    print("error")
 
             elif line[0] in ("Z", "z"):
                 temp2 = ("<path d=\"L " + str(currentPosition[0]) + " " + str(currentPosition[1]) + " " + str(storedPosition[0]) + " " + str(storedPosition[1]) + "\"/>")
@@ -146,8 +140,7 @@ def relativeToAbsolute(file):
                 currentPosition = storedPosition
 
             else:
-                # Unrecognized command
-                pass
+                print("error")
 
     output.append("\n</g>\n</svg>")
     return output

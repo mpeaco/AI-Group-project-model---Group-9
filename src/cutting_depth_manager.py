@@ -1,5 +1,5 @@
-from material_profiles import get_material_profile
-from path_optimisation import CuttingPath
+from materials.profiles import get_material_profile
+from processing.path_optimisation import CuttingPath
 
 class CuttingDepthManager:
     """Manages cutting depth, multi-pass cutting, and operation types"""

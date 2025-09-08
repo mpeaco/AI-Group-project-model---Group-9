@@ -1,14 +1,15 @@
-from image_processing import *
+from processing.image_processing import *
 import cv2 as cv
-from vector_utils import bitmap_to_vector as cv_bitmap_to_vector
-from dxf_utils import svg_to_dxf
-from path_optimisation import (process_path, optimize_cutting_sequence, 
+from processing.vector_utils import bitmap_to_vector as cv_bitmap_to_vector
+from utils.dxf_utils import svg_to_dxf
+from processing.path_optimisation import (process_path, optimize_cutting_sequence, 
                               PathOptimizer)
 from visualize import visualize_paths, create_cutting_sequence_animation
 import pyvips
 import time
 import os
 from datetime import datetime
+from pathlib import Path
 
 
 # Loads images from a folder
@@ -36,7 +37,6 @@ def load_sample_images(filepath: str, use_pyvips: bool = False, random_image=Fal
     for ext in image_extensions:
         image_files.extend(image_directory.glob(ext))
 
-    # Check if we found any
     # Check if we found any
     if len(image_files) == 0:
         return
@@ -80,9 +80,9 @@ def main():
     use_pyvips = True if user_choice.lower() == 'y' else False
     print("Using pyvips:", use_pyvips)
     
-    # Make a folder with timestamp for output
+    # Make a folder with timestamp for output in sample_results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_folder = f"output_results_{timestamp}"
+    output_folder = f"sample_data/sample_results/output_results_{timestamp}"
     os.makedirs(output_folder, exist_ok=True)
     print("Output folder:", output_folder)
     
@@ -103,9 +103,7 @@ def main():
 
     # Show original image
     if sample_image.any():
-        cv.imshow("sample image", sample_image)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
+        print("Original image loaded successfully:", sample_image.shape)
 
     # Process the image - different ways depending on library
     if not use_pyvips:
@@ -123,10 +121,7 @@ def main():
         
     # Show what we got
     if use_pyvips:
-        # Show pyvips processed image
-        cv.imshow("processed image", processed_pyvips_image)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
+        print("PyVips processed image shape:", processed_pyvips_image.shape)
         
         # Save files for pyvips version
         bitmap_filename = os.path.join(output_folder, "processed_bitmap_image.pbm")
@@ -134,10 +129,7 @@ def main():
         svg_filename = os.path.join(output_folder, "processed_vector_image.svg")
         output_image_path = cv_bitmap_to_vector(file_path, svg_filename)
     else:
-        # Show opencv processed image
-        cv.imshow("processed image", processed_image)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
+        print("OpenCV processed image shape:", processed_image.shape)
         
         # Save files for opencv version
         bitmap_filename = os.path.join(output_folder, "processed_bitmap_image.pbm")
@@ -191,8 +183,6 @@ def main():
         print("\nAfter:")
         print("Paths:", len(optimized_paths))
         optimized_length = sum(path.length() for path in optimized_paths)
-        print("Length:", round(optimized_length, 2), "mm")
-        print("Pierces:", len(optimized_paths))
         print("Length:", round(optimized_length, 2), "mm")
         print("Pierces:", len(optimized_paths))
         
@@ -290,7 +280,7 @@ def main():
         print("="*50)
         
         # Import the workflow functions
-        from material_workflow import run_workflow
+        from materials.workflow import run_workflow
         
         # Run interactive material and depth selection
         depth_manager = run_workflow(final_paths, output_folder)

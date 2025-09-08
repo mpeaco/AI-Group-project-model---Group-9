@@ -29,4 +29,12 @@ These scripts automatically navigate to the source directory and run the program
 
 ## Dependencies
 
-- PoTrace
+./venv/Scripts/Activate.ps1
+
+
+## To train the model
+cd C:\Users\sangn\OneDrive\Documents\GitHub\AI-Group-project-model---Group-9\src\ml
+
+then run:
+
+C:/Users/sangn/OneDrive/Documents/GitHub/AI-Group-project-model---Group-9/venv/Scripts/python.exe train.py

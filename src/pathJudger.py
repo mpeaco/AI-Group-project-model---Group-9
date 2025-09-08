@@ -71,13 +71,10 @@ def restoreFile(linesOriginal, linesMixed):
             if line[1] == [float(temp[-2]), float(temp[-1][:-3])]:
                 temp2 = np.delete(temp2, np.where(temp2 == line[2]))
                 body.append(linesOriginal[line[2]])
-                pass
             else:
-                # Error in line end coordinates
-                pass
+                print("Error in line end coordinates")
         else:
-            # Error in line start coordinates  
-            pass
+            print("Error in line start coordinates")
     stored = -1
     header = []
     footer = []

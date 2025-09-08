@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from path_optimisation import CuttingPoint
+from processing.path_optimisation import CuttingPoint
 
 
 def visualize_paths(original_paths, optimized_paths=None, processed_image=None, save_path="path_visualization.png"):
