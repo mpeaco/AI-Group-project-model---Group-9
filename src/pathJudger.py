@@ -15,7 +15,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import random
+import random as rand
 import math
 import time
 from relative_to_absolute import writeSvg
@@ -30,16 +30,15 @@ def judgeDistance(linesList):
     # (math.dist is coded in c, so is faster than same code in py)
 
     distance = 0
+    end = linesList[0][0]
     for line in linesList:
+        #if type(line) != list:
+         #   break
         start = line[0]
-        try:
-            # capture the distance between segments
-            # (and save time if segment starts where the previous one ends)
-            if start != end:
-                distance += math.dist(start, end)
-        except:
-            # on the first iteration, end has not yet been set
-            pass
+        # capture the distance between segments
+        # (and save time if segment starts where the previous one ends)
+        if np.array_equal(start, end) != True:
+            distance += math.dist(start, end)
         end = line[1]
         distance += math.dist(start, end)
 
@@ -71,14 +70,11 @@ def preview(linesList):
     # creates a pyplot graph showing the current path of printer
     # assumes input in the format:
     # [[[point1x, point1y], [point2x, point2y], (artitrary beyond these points)], ...]
-    
+    end = linesList[0][0]
     for line in linesList:
         start = line[0]
-        try:
-            if start != end:
-                plt.plot([start[0], end[0]], [start[1], end[1]], color="blue", linestyle="dashed", zorder=1)
-        except:
-            pass
+        if np.array_equal(start, end) != True:
+            plt.plot([start[0], end[0]], [start[1], end[1]], color="blue", linestyle="dashed", zorder=1)
         end = line[1]
         
         plt.plot([start[0], end[0]], [start[1], end[1]], color="red", linestyle="dashed", zorder=3)
@@ -124,7 +120,7 @@ def main():
     print(":D")
     pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\output.svg"
     linesFull, linesCoords = processFile(pathGuy)
-    random.shuffle(linesCoords)
+    rand.shuffle(linesCoords)
     timer1 = time.time()
     print(judgeDistance(linesCoords))
     timer2 = time.time()

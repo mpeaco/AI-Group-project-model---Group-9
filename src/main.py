@@ -1,5 +1,12 @@
+import os
+path = os.path.abspath("vips-dev-8.17/bin")
+os.environ["PATH"] = os.environ['PATH'] + os.pathsep + path
+path = os.path.abspath("potrace-1.16.win64")
+os.environ["PATH"] = os.environ['PATH'] + os.pathsep + path
 from image_processing import *
-import random
+from relative_to_absolute import *
+from pathJudger import *
+import random as rand
 import argparse
 import sys
 import cv2 as cv
@@ -7,7 +14,7 @@ from potrace_wrapper import bitmap_to_vector
 import pyvips
 from rich import print, pretty
 import time
-
+import copy
 
 
 def load_sample_images(filepath: str, use_pyvips: bool = False, random_image=False):
@@ -49,7 +56,7 @@ def load_sample_images(filepath: str, use_pyvips: bool = False, random_image=Fal
             image = cv.imread(im)
             stored_images.append(image)
 
-    random_idx = random.randint(0, len(stored_images)) - 1
+    random_idx = rand.randint(0, len(stored_images)) - 1
     if len(stored_images) == 0:
         return
     if random_image:
@@ -71,6 +78,7 @@ def main():
     """
     Main function to run the program
     """
+
     pretty.install()
     
     parser = argparse.ArgumentParser(description="Process and extract lines from an image")
@@ -80,22 +88,24 @@ def main():
     use_pyvips = args.pyvips  # flag to set wether to use pyvips or opencv
     print("\nUsing pyvips: {}".format(use_pyvips))
     
-    sample_images_path = "sample_data"
+    sample_images_path = "AI-Group-project-model---Group-9/src/sample_data"
     processed_images_directory = "processed_images"
 
     # Load a sample image
 
-    sample_image = load_sample_images(sample_images_path, use_pyvips=use_pyvips, random_image=False)
+    sample_image = load_sample_images(sample_images_path, use_pyvips=use_pyvips, random_image=True)
 
     print("Sample image loaded, type: {}".format(type(sample_image)))
 
     pyvips_im = None
     if use_pyvips:
+        print("A")
         pyvips_im = sample_image  # Store the pyvips image as a new variable
         sample_image = convert_pyvips_to_numpy(
             sample_image
         )  # convert the image to a numpy array to display
 
+    print("display1")
     if sample_image.any():
         cv.imshow("sample image", sample_image)  # View a the sample image
         cv.waitKey(0)
@@ -123,14 +133,15 @@ def main():
         processed_pyvips_image = image_processing_pyvips(pyvips_im)
         p_end_time = time.perf_counter()
         print("Pyvips image processing time: {}".format(p_end_time - p_start_time))
-    if use_pyvips:
+    print("display2")
+    """if use_pyvips:
         cv.imshow("processed image", processed_pyvips_image)  # View a the sample image
         cv.waitKey(0)
         cv.destroyAllWindows()
     else:
         cv.imshow("processed image", processed_image)  # View a the sample image
         cv.waitKey(0)
-        cv.destroyAllWindows()
+        cv.destroyAllWindows()"""
 
     # Create a bitmap and then vector image
 
@@ -160,9 +171,25 @@ def main():
     print("Number of edges: {}".format(len(edges)))
     print("\nImage processing complete")
     
-    print(type(path))
-    print(path)
+    #print(type(path))
+    #print(path)
     # Now the path needs to be processed and optimised
+
+    # file changed from relative to absolute and resaved
+    # note, file will save as "output.svg" in local location
+    writeSvg(relativeToAbsolute(output_image_path), "outputSun.svg")
+
+    # turns the lines of the path into coordiantes for the pathfinder
+    # also saves the original lines to put the file back together
+    linesIndex, linesOperatable = processFile("output.svg")
+
+    print(judgeDistance(linesOperatable))
+
+    rand.shuffle(linesOperatable)
+
+    print(judgeDistance(linesOperatable))
+
+    preview(linesOperatable)
     
     
 
