@@ -9,9 +9,12 @@ def image_processing_pyvips(image):
     image = image.gaussblur(1.5)
     if image.hasalpha():
         image = image.flatten(background=[255]).unpremultiply()
+    #print(image.get_scale())
     image = image.colourspace("b-w")
     if image.bands > 1:
         image = image.extract_band(0)
+    
+    #image = image < 128
     
     image = image.copy(interpretation="b-w")
     image = convert_pyvips_to_numpy(image)
@@ -36,6 +39,7 @@ def image_processing_opencv(image):
     # Try Otsu's automatic thresholding for better results
     ret, img_thresholded = cv.threshold(img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
     print(f"Otsu threshold value: {ret}")
+    print(type(img_thresholded))
     
     # Use smaller kernel to preserve more detail
     kernel = np.ones((3, 3), np.uint8)

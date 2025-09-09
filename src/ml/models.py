@@ -116,7 +116,7 @@ def get_model_info(model):
         'model_size_mb': total_params * 4 / (1024 * 1024)  # Assuming float32
     }
 
-def save_model(model, path):
+def save_model(model, path, metadata=None):
     import os
     os.makedirs(os.path.dirname(path), exist_ok=True)
     
@@ -125,6 +125,9 @@ def save_model(model, path):
         'model_type': type(model).__name__,
         'num_classes': 6
     }
+    
+    if metadata:
+        save_dict.update(metadata)
     
     torch.save(save_dict, path)
     print(f"Model saved to {path}")
@@ -140,25 +143,3 @@ def load_model(path):
         model.load_state_dict(checkpoint)
     
     return model
-
-def compare_models():
-    print("MODEL COMPARISON")
-    print("=" * 40)
-    
-    model = MaterialNet(num_classes=6)
-    info = get_model_info(model)
-    print(f"\nMaterialNet:")
-    print(f"  Parameters: {info['total_parameters']:,}")
-    print(f"  Model size: {info['model_size_mb']:.1f} MB")
-
-def test_model_forward():
-    print("\nMODEL FORWARD PASS TEST")
-    print("=" * 40)
-    
-    dummy_input = torch.randn(1, 3, 224, 224)
-    
-    model = MaterialNet(num_classes=6)
-    model.eval()
-    with torch.no_grad():
-        output = model(dummy_input)
-        print(f"MaterialNet: Input {list(dummy_input.shape)} -> Output {list(output.shape)}")

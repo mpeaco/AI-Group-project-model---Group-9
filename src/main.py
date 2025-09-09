@@ -275,9 +275,9 @@ def main():
         print("\nTotal travel:", round(total_travel_distance, 2), "mm")
         
         # *** NEW: MATERIAL AND DEPTH MANAGEMENT ***
-        print("\n" + "="*50)
+        print("\n==================================================")
         print("LASER CUTTING SETUP")
-        print("="*50)
+        print("==================================================")
         
         # Import the workflow functions
         from materials.workflow import run_workflow
@@ -295,7 +295,7 @@ def main():
             cutting_sequence = depth_manager.get_cutting_sequence()
             print(f"\nCutting sequence: {len(cutting_sequence)} operations")
         
-        print("="*50)
+        print("==================================================")
         
     else:
         # No paths to optimize

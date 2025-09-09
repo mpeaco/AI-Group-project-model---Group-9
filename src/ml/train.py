@@ -30,16 +30,11 @@ class MaterialDataset(Dataset):
         img_path = self.image_paths[idx]
         label = self.labels[idx]
         
-        try:
-            image = Image.open(img_path).convert('RGB')
-            if self.transform:
-                image = self.transform(image)
-            return image, label
-        except Exception as e:
-            print(f"Error loading {img_path}: {e}")
-            # Return a blank image if loading fails
-            dummy_image = torch.zeros(3, 224, 224)
-            return dummy_image, label
+        # Load image without error handling 
+        image = Image.open(img_path).convert('RGB')
+        if self.transform:
+            image = self.transform(image)
+        return image, label
 
 def load_data(data_dir):
     """Load images and create random train/test split"""
@@ -68,7 +63,6 @@ def load_data(data_dir):
     
     # Show what we loaded
     total = len(all_images)
-    print(f"\nDataset loaded:")
     for material in materials:
         count = material_counts.get(material, 0)
         percent = (count / total) * 100 if total > 0 else 0
@@ -157,65 +151,7 @@ def create_data_loaders(train_images, train_labels, test_images, test_labels, ba
     
     return train_loader, test_loader
 
-def test_hyperparameters(train_images, train_labels, test_images, test_labels, epochs=3):
-    """Test different hyperparameters systematically"""
-    
-    print("=" * 60)
-    print("HYPERPARAMETER TESTING")
-    print("=" * 60)
-    
-    # hyperparameter combinations 
-    learning_rates = [0.001]  #  1 learning rate
-    batch_sizes = [16, 32]    #  2 batch sizes
-    
-    results = []
-    
-    for lr in learning_rates:
-        for batch_size in batch_sizes:
-            print(f"\nTesting LR: {lr}, Batch Size: {batch_size}")
-            
-            # Create data loaders with current batch size
-            train_loader_test, test_loader_test = create_data_loaders(
-                train_images, train_labels, test_images, test_labels, batch_size=batch_size
-            )
-            
-            # Create new model
-            model = MaterialNet(num_classes=6)
-            
-            # Train with current parameters - use only 3 epochs for quick testing
-            try:
-                trained_model, accuracy = train_model(model, train_loader_test, test_loader_test, 
-                                                    epochs=epochs, learning_rate=lr)
-                results.append({
-                    'lr': lr,
-                    'batch_size': batch_size,
-                    'accuracy': accuracy
-                })
-                print(f"Result: {accuracy:.2f}% accuracy")
-            except Exception as e:
-                print(f"Failed with error: {e}")
-                results.append({
-                    'lr': lr,
-                    'batch_size': batch_size,
-                    'accuracy': 0.0
-                })
-    
-    # Find best parameters
-    best_result = max(results, key=lambda x: x['accuracy'])
-    print(f"\n" + "=" * 60)
-    print("HYPERPARAMETER TEST RESULTS")
-    print("=" * 60)
-    for result in results:
-        print(f"LR: {result['lr']}, Batch: {result['batch_size']}, Accuracy: {result['accuracy']:.2f}%")
-    
-    print(f"\nBest Parameters:")
-    print(f"Learning Rate: {best_result['lr']}")
-    print(f"Batch Size: {best_result['batch_size']}")
-    print(f"Best Accuracy: {best_result['accuracy']:.2f}%")
-    
-    return best_result
-
-def train_model(model, train_loader, test_loader, epochs=5, learning_rate=0.0005):
+def train_model(model, train_loader, test_loader, epochs=10, learning_rate=0.001):
     """Simple training function"""
     
     # Use GPU if available, otherwise CPU
@@ -305,9 +241,9 @@ def train_model(model, train_loader, test_loader, epochs=5, learning_rate=0.0005
                     print(f"  {material}: No test samples")
             
             # Generate comprehensive evaluation
-            print(f"\n" + "=" * 50)
+            print(f"\n==================================================")
             print("COMPREHENSIVE EVALUATION REPORT")
-            print("=" * 50)
+            print("==================================================")
             
             # Get predictions for classification report
             all_predictions = []
@@ -361,7 +297,7 @@ def check_data(data_dir):
 def main():
     """Main training function"""
     print("Material Classification Training")
-    print("=" * 40)
+    print("========================================")
     
     # Check if we have data
     data_dir = "data"
@@ -378,31 +314,25 @@ def main():
     # Split into train and test using balanced sampling (equal samples per material)
     train_images, train_labels, test_images, test_labels = create_train_test_split(all_images, all_labels)
     
-    # Create data loaders
-    train_loader, test_loader = create_data_loaders(train_images, train_labels, test_images, test_labels)
+    # Create data loaders with fixed parameters
+    train_loader, test_loader = create_data_loaders(train_images, train_labels, test_images, test_labels, batch_size=16)
     
-    # Run systematic hyperparameter testing (fast version)
-    best_params = test_hyperparameters(train_images, train_labels, test_images, test_labels, epochs=3)
+    # Train model
+    print(f"\n============================================================")
+    print("TRAINING MODEL")
+    print("============================================================")
     
-    # Train final model with best parameters - use full 10 epochs
-    print(f"\n" + "=" * 60)
-    print("TRAINING FINAL MODEL WITH BEST PARAMETERS")
-    print("=" * 60)
-    
-    # Recreate data loaders with best batch size
-    train_loader, test_loader = create_data_loaders(
-        train_images, train_labels, test_images, test_labels, 
-        batch_size=best_params['batch_size']
-    )
-    
-    # Create and train final model
+    # Create and train model
     model = MaterialNet(num_classes=6)
     model_info = get_model_info(model)
     print(f"Model parameters: {model_info['total_parameters']:,}")
     
+    learning_rate = 0.001
+    batch_size = 16
+    
     trained_model, final_accuracy = train_model(
         model, train_loader, test_loader, 
-        epochs=10, learning_rate=best_params['lr']
+        epochs=10, learning_rate=learning_rate
     )
     
     # Save the trained model
@@ -415,19 +345,19 @@ def main():
         "test_images": len(test_images),
         "final_accuracy": final_accuracy,
         "epochs": 10,
-        "best_lr": best_params['lr'],
-        "best_batch_size": best_params['batch_size']
+        "learning_rate": learning_rate,
+        "batch_size": batch_size
     }
     
     save_model(trained_model, "models_trained/material_classifier.pth", metadata)
     
-    print("\n" + "=" * 40)
+    print("\n========================================")
     print("Training Complete!")
     print(f"Final accuracy: {final_accuracy:.2f}%")
     print("Model saved as: material_classifier.pth")
-    print(f"Best learning rate: {best_params['lr']}")
-    print(f"Best batch size: {best_params['batch_size']}")
-    print("=" * 40)
+    print(f"Learning rate: {learning_rate}")
+    print(f"Batch size: {batch_size}")
+    print("========================================")
 
 if __name__ == "__main__":
     main()
