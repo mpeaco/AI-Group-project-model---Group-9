@@ -2,8 +2,7 @@ from processing.image_processing import *
 import cv2 as cv
 from processing.vector_utils import bitmap_to_vector as cv_bitmap_to_vector
 from utils.dxf_utils import svg_to_dxf
-from processing.path_optimisation import (process_path, optimize_cutting_sequence, 
-                              PathOptimizer)
+from processing.path_optimisation import (process_path, optimize_cutting_sequence, PathOptimizer)
 from visualize import visualize_paths, create_cutting_sequence_animation
 import pyvips
 import time

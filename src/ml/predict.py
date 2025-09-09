@@ -25,7 +25,7 @@ class MaterialRecognition:
         self._load_model()
     
     def _load_model(self):
-        model_path = "models_trained/enhanced_advanced.pth"
+        model_path = "models_trained/material_classifier.pth"
         if os.path.exists(model_path):
             try:
                 self.model = load_model(model_path)
