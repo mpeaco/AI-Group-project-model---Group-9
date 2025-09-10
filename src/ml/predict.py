@@ -9,7 +9,7 @@ from PIL import Image
 from torchvision import transforms
 from models import load_model
 
-"""The study inspired by BLOrange-AMD
+"""The study inspired by BLOrange-AMD:
 https://github.com/pytorch/examples/blob/main/imagenet/main.py#L321"""
 class MaterialRecognition:
     def __init__(self):
@@ -18,7 +18,7 @@ class MaterialRecognition:
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # image preprocessing - just normalize to [-1,1]
+        # image preprocessing 
         self.transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])

@@ -116,13 +116,12 @@ class PathOptimizer:
         
         # Only add lead-in/out for closed paths
         if path.is_closed:
-            # Simple approach - add points at 45 degrees from first point
             # Calculate lead-in point 
             lead_in_x = first_point.x - lead_length
             lead_in_y = first_point.y - lead_length
             lead_in = CuttingPoint(lead_in_x, lead_in_y, is_pierce=True)
             
-            # Calculate lead-out point (5mm away at opposite 45 degrees)
+            # Calculate lead-out point 
             lead_out_x = first_point.x + lead_length
             lead_out_y = first_point.y - lead_length
             lead_out = CuttingPoint(lead_out_x, lead_out_y)
@@ -171,5 +170,6 @@ def process_path(path):
 def optimize_cutting_sequence(paths, method="nearest_neighbor"):
     # Optimize the order of cutting paths
     optimizer = PathOptimizer()
+    # print("PATHS", paths)
     return optimizer.nearest_neighbor_tsp(paths)
 

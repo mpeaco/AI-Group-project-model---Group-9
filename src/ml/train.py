@@ -13,6 +13,9 @@ import numpy as np
 from models import MaterialNet, save_model, count_params
 from sklearn.metrics import classification_report
 
+"""This study inspired by previous works:
+By hysts ML Engineer: https://github.com/hysts/pytorch_image_classification/blob/master/pytorch_image_classification/datasets/datasets.py
+"""
 class MaterialDataset(Dataset):
     # dataset class for loading images
     def __init__(self, img_paths, labels, transform=None):
@@ -125,7 +128,7 @@ def split_data_balanced(all_imgs, all_labels):
 def make_data_loaders(train_imgs, train_labels, test_imgs, test_labels, batch_sz=16):
     # create pytorch data loaders
 
-    # normalization technique from Machine Learning module with the music dataset coursework with Professor Haixia 
+    # normalization technique from Machine Learning module with the music dataset coursework with Dr. Haixia Liu  
     train_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
