@@ -13,10 +13,8 @@ class CuttingPoint:
     
     # Calculate distance between two points using pythagoras
     def distance_to(self, other):
-        # Old way I found
-        # dx = self.x - other.x
-        # dy = self.y - other.y
-        # dist = math.sqrt(dx*dx + dy*dy)
+        #   Calculates the Euclidean distance between this point and another. Just like module AI for Search and Optimisation with Dr. Qurat-ul-ain Mastoi
+        """Uses the metric ρ(p, q) = √( (p_x - q_x)² + (p_y - q_y)² ) [Berg et al., 2008]."""
         
         # direct way:
         return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
@@ -53,11 +51,6 @@ class CuttingPath:
 
 class PathOptimizer:
     # Optimizer for cutting paths 
-
-    def __init__(self):
-        # PathOptimizer now focuses only on path optimization
-        # Time calculations are handled by CuttingDepthManager with material profiles
-        pass
     
     # Find the best order of paths
     def nearest_neighbor_tsp(self, paths):

@@ -6,8 +6,8 @@ import torch.nn as nn
 
 class MaterialNet(nn.Module):
     # CNN for classifying materials - 6 types
-    # Learned from Machine Learning for Language and Vision with Professor Nathan
-
+    # Learned from Machine Learning for Language and Vision with Dr Nathan Duran
+    # Clear implementation that helped inspire this work: https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py
 
     def __init__(self, num_classes=6):
         super().__init__()
@@ -84,7 +84,7 @@ class ResBlock(nn.Module):
         out = self.conv2(out)
         out = self.bn2(out)
         
-        out += self.shortcut(x)  # skip connection
+        out += self.shortcut(x)  
         out = self.relu(out)
         
         return out
@@ -93,8 +93,7 @@ def count_params(model):
     # count how many parameters the model has
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    size_mb = total * 4 / (1024 * 1024)  # assume float32
-    
+    size_mb = total * 4 / (1024 * 1024)  
     return {
         'total': total,
         'trainable': trainable,
@@ -116,7 +115,7 @@ def save_model(model, path, extra_stuff=None):
         save_dict.update(extra_stuff)
     
     torch.save(save_dict, path)
-    # Removed print statement to avoid duplicate output
+    
 
 def load_model(path):
     # load model from file
