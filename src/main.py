@@ -1,3 +1,8 @@
+import os
+path = os.path.abspath("vips-dev-8.17/bin")
+os.environ["PATH"] = os.environ['PATH'] + os.pathsep + path
+path = os.path.abspath("potrace-1.16.win64")
+os.environ["PATH"] = os.environ['PATH'] + os.pathsep + path
 from processing.image_processing import *
 import cv2 as cv
 from processing.vector_utils import bitmap_to_vector as cv_bitmap_to_vector
@@ -6,7 +11,6 @@ from processing.path_optimisation import (process_path, optimize_cutting_sequenc
 from visualize import visualize_paths, create_cutting_sequence_animation
 import pyvips
 import time
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -81,7 +85,7 @@ def main():
     
     # Make a folder with timestamp for output in sample_results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_folder = f"sample_data/sample_results/output_results_{timestamp}"
+    output_folder = r"C:\Users\MillerN\Desktop\AI\Group Project\AI-Group-project-model---Group-9/src/sample_data/sample_results/output_results"
     os.makedirs(output_folder, exist_ok=True)
     print("Output folder:", output_folder)
     
