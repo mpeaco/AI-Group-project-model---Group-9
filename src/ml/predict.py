@@ -1,6 +1,5 @@
-"""
-Material prediction for laser cutting project
-"""
+# material prediction stuff
+# kinda messy but works
 
 import os
 import cv2
@@ -12,91 +11,129 @@ from models import load_model
 
 class MaterialRecognition:
     def __init__(self):
+        # the 6 materials we can detect
         self.materials = ['cardboard', 'fabric', 'leather', 'metal', 'paper', 'wood']
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        # Image preprocessing
+        # image preprocessing - just normalize to [-1,1]
         self.transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ])
         
-        self._load_model()
+        self.load_trained_model()
     
-    def _load_model(self):
+    def load_trained_model(self):
+        # try to load the trained model
         model_path = "models_trained/material_classifier.pth"
         if os.path.exists(model_path):
             try:
                 self.model = load_model(model_path)
                 self.model.eval()
-                print(f"Model loaded: {model_path}")
-            except:
+                print(f"loaded model from {model_path}")
+            except Exception as e:
+                print(f"failed to load model: {e}")
                 self.model = None
-                print("Model loading failed")
         else:
+            print("no trained model found, using fallback")
             self.model = None
-            print("No model found")
-    def predict_material(self, image_path):
-        if self.model:
-            return self._neural_predict(image_path)
-        else:
-            return self._basic_predict(image_path)
     
-    def _neural_predict(self, image_path):
+    def predict_material(self, img_path):
+        # main prediction function
+        if self.model is not None:
+            return self.predict_with_model(img_path)
+        else:
+            return self.predict_simple(img_path)
+    
+    def predict_with_model(self, img_path):
+        # use the neural network
         try:
-            img = Image.open(image_path).convert('RGB')
-            tensor = self.transform(img).unsqueeze(0).to(self.device)
+            img = Image.open(img_path).convert('RGB')
+            img_tensor = self.transform(img).unsqueeze(0).to(self.device)
             
             with torch.no_grad():
-                output = self.model(tensor)
-                probs = torch.softmax(output, dim=1)
-                confidence, pred = torch.max(probs, 1)
+                outputs = self.model(img_tensor)
+                probs = torch.softmax(outputs, dim=1)
+                confidence, prediction = torch.max(probs, 1)
                 
-                material = self.materials[pred.item()]
-                conf_score = confidence.item()
-                thickness = self._get_thickness(material)
+                material_name = self.materials[prediction.item()]
+                conf_val = confidence.item()
+                thickness = self.get_material_thickness(material_name)
                 
                 return {
-                    'material_type': material,
+                    'material_type': material_name,
                     'thickness_mm': thickness,
-                    'confidence': conf_score,
+                    'confidence': conf_val,
                     'success': True
                 }
-        except:
-            return self._basic_predict(image_path)
+        except Exception as e:
+            print(f"model prediction failed: {e}")
+            return self.predict_simple(img_path)
     
-    def _basic_predict(self, image_path):
+    def predict_simple(self, img_path):
+        # fallback method - just look at brightness
         try:
-            img = cv2.imread(image_path)
+            img = cv2.imread(img_path)
             if img is None:
-                return {'material_type': 'unknown', 'thickness_mm': 3.0, 'confidence': 0.0, 'success': False}
+                return self.default_result()
             
-            brightness = np.mean(img)
+            # calculate average brightness
+            avg_brightness = np.mean(img)
             
-            if brightness > 200:
-                return {'material_type': 'paper', 'thickness_mm': 0.2, 'confidence': 0.6, 'success': True}
-            elif brightness > 150:
-                return {'material_type': 'cardboard', 'thickness_mm': 2.0, 'confidence': 0.6, 'success': True}
-            elif brightness > 100:
-                return {'material_type': 'wood', 'thickness_mm': 6.0, 'confidence': 0.6, 'success': True}
-            elif brightness > 80:
-                return {'material_type': 'fabric', 'thickness_mm': 0.8, 'confidence': 0.6, 'success': True}
-            elif brightness > 60:
-                return {'material_type': 'leather', 'thickness_mm': 2.5, 'confidence': 0.6, 'success': True}
+            # simple thresholding based on brightness
+            # lighter = paper/cardboard, darker = metal/leather
+            if avg_brightness > 200:
+                mat = 'paper'
+                thick = 0.2
+            elif avg_brightness > 150:
+                mat = 'cardboard' 
+                thick = 2.0
+            elif avg_brightness > 100:
+                mat = 'wood'
+                thick = 6.0
+            elif avg_brightness > 80:
+                mat = 'fabric'
+                thick = 0.8
+            elif avg_brightness > 60:
+                mat = 'leather'
+                thick = 2.5
             else:
-                return {'material_type': 'metal', 'thickness_mm': 1.5, 'confidence': 0.6, 'success': True}
+                mat = 'metal'
+                thick = 1.5
+                
+            return {
+                'material_type': mat,
+                'thickness_mm': thick,
+                'confidence': 0.6,  # low confidence for simple method
+                'success': True
+            }
         except:
-            return {'material_type': 'unknown', 'thickness_mm': 3.0, 'confidence': 0.0, 'success': False}
+            return self.default_result()
     
-    def _get_thickness(self, material):
-        thickness = {
-            'cardboard': 2.0, 'fabric': 0.8, 'leather': 2.5,
-            'metal': 1.5, 'paper': 0.2, 'wood': 6.0
+    def get_material_thickness(self, material):
+        # typical thickness values for each material
+        thicknesses = {
+            'cardboard': 2.0, 
+            'fabric': 0.8, 
+            'leather': 2.5,
+            'metal': 1.5, 
+            'paper': 0.2, 
+            'wood': 6.0
         }
-        return thickness.get(material, 3.0)
+        return thicknesses.get(material, 3.0)  # default 3mm
+    
+    def default_result(self):
+        # return this when everything fails
+        return {
+            'material_type': 'unknown', 
+            'thickness_mm': 3.0, 
+            'confidence': 0.0, 
+            'success': False
+        }
 
-def recognize_material_from_image(image_path):
+# simple function for external use
+def recognize_material_from_image(img_path):
     recognizer = MaterialRecognition()
-    return recognizer.predict_material(image_path)
+    return recognizer.predict_material(img_path)
 

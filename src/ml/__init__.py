@@ -1,7 +1,5 @@
-"""
-Simple ML package
-Basic material recognition
-"""
+# ml stuff for the project
+# TODO: clean this up later
 
-from .recognition import MaterialRecognition
 from .models import MaterialNet
+# from .recognition import MaterialRecognition  # not working yet
