@@ -13,15 +13,15 @@ def npJudgeDistance(linesList):
     mask = ~np.all(starts == shiftedEnds, axis=1)
     segDists = np.linalg.norm(starts[mask] - shiftedEnds[mask], axis=1)
 
-    lineDists = np.linalg.norm(ends - starts, axis=1)
+    #lineDists = np.linalg.norm(ends - starts, axis=1)
 
-    return np.sum(segDists) + np.sum(lineDists)
+    return np.sum(segDists)# + np.sum(lineDists)
 
 def npGeneratePopulation(genes, popSize):
     genes = np.array(genes)
     output = np.empty((popSize, *np.shape(genes)))
-    output[0] = copy.deepcopy(genes)
-    index = 1
+    #output[0] = copy.deepcopy(genes)
+    index = 0
     while index != popSize:
         tempnum = rand.randint(1, len(genes))
         temp1 = genes[:tempnum]
@@ -74,17 +74,17 @@ def npGeneticAlgorithm(population, mutRate):
             child = npMutateFlip(child)
         if rand.random() <= mutRate:
             child = npMutateRotate(child)
+        # swap 2 adjacent points
         if rand.random() <= mutRate:
             point = rand.choice(range(len(child)-1))
             child[[point,point+1]] = child[[point+1, point]]
-            child = npMutateRotate(child)
+        # swap 2 random points
         if rand.random() <= mutRate:
             points = rand.choices(range(len(child)-1), k=2)
             child[[points[0],points[1]]] = child[[points[1], points[0]]]
-            child = npMutateRotate(child)
         children[j] = child
 
-    combined = np.concatenate((children, population))
+    combined = np.concatenate((children, population[:int(np.round(length/10))]))
     scores = np.array([npJudgeDistance(ind) for ind in combined])
     bestInd = np.argsort(scores)[:length]
     output = combined[bestInd]
