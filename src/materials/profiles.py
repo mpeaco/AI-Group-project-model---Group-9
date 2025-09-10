@@ -2,7 +2,7 @@
 # Each material has specific cutting parameters
 
 MATERIAL_PROFILES = {
-    # Paper & Cardboard
+    # Cardboard & Paper
     "cardboard_3mm": {
         "name": "Cardboard 3mm",
         "thickness": 3.0,  # mm
@@ -13,7 +13,7 @@ MATERIAL_PROFILES = {
         "engrave_power": 45,
         "kerf_width": 0.1,  
         "pierce_time": 0.2,  # seconds
-        "material_type": "paper"
+        "material_type": "cardboard"
     },
     
     "paper_160gsm": {
@@ -41,61 +41,6 @@ MATERIAL_PROFILES = {
         "kerf_width": 0.15,
         "pierce_time": 0.5,
         "material_type": "wood"
-    },
-    
-    "plywood_6mm": {
-        "name": "Plywood 6mm", 
-        "thickness": 6.0,
-        "cut_speed": 400,
-        "cut_power": 95,
-        "cut_passes": 2,  # Multiple passes needed
-        "engrave_speed": 800,
-        "engrave_power": 65,
-        "kerf_width": 0.2,
-        "pierce_time": 1.0,
-        "material_type": "wood"
-    },
-    
-    "mdf_3mm": {
-        "name": "MDF 3mm",
-        "thickness": 3.0,
-        "cut_speed": 500,
-        "cut_power": 85,
-        "cut_passes": 1,
-        "engrave_speed": 900,
-        "engrave_power": 60,
-        "kerf_width": 0.18,
-        "pierce_time": 0.6,
-        "material_type": "wood"
-    },
-    
-    # Acrylic Materials
-    "acrylic_3mm": {
-        "name": "Acrylic 3mm",
-        "thickness": 3.0,
-        "cut_speed": 300,
-        "cut_power": 70,  # Lower power to avoid melting
-        "cut_passes": 1,
-        "engrave_speed": 1500,
-        "engrave_power": 40,
-        "kerf_width": 0.1,
-        "pierce_time": 0.3,
-        "material_type": "acrylic",
-        "notes": "Reduce power to 55-65% for colored acrylic"
-    },
-    
-    "acrylic_5mm": {
-        "name": "Acrylic 5mm",
-        "thickness": 5.0,
-        "cut_speed": 200,  # Slow speed for smooth edge
-        "cut_power": 90,   # High power to prevent striations
-        "cut_passes": 1,
-        "engrave_speed": 1200,
-        "engrave_power": 50,
-        "kerf_width": 0.12,
-        "pierce_time": 0.8,
-        "material_type": "acrylic",
-        "notes": "Very slow speed prevents visible striations on edge"
     },
     
     # Fabric & Leather
@@ -140,20 +85,6 @@ MATERIAL_PROFILES = {
         "pierce_time": 2.0, # Longer pierce time
         "material_type": "metal",
         "notes": "Only very thin metal sheets. Requires special lens and high power. Use with extreme caution."
-    },
-    
-    "aluminum_foil": {
-        "name": "Aluminum Foil",
-        "thickness": 0.1,
-        "cut_speed": 800,
-        "cut_power": 30,
-        "cut_passes": 1,
-        "engrave_speed": 1200,
-        "engrave_power": 25,
-        "kerf_width": 0.02,
-        "pierce_time": 0.1,
-        "material_type": "metal",
-        "notes": "Decorative foil only. Not structural metal."
     }
 }
 
@@ -175,10 +106,6 @@ def get_material_profile(material_id):
         return MATERIAL_PROFILES[material_id]
     return None
 
-def add_custom_material(material_id, profile):
-    """Add new material"""
-    MATERIAL_PROFILES[material_id] = profile
-
 def get_materials_by_type(material_type):
     """Get materials of same type"""
     results = {}
@@ -186,123 +113,6 @@ def get_materials_by_type(material_type):
         if profile['material_type'] == material_type:
             results[key] = profile
     return results
-
-def calculate_cut_time(path_length_mm, material_profile):
-    """ How long cutting will take"""
-    speed = material_profile['cut_speed']
-    passes = material_profile['cut_passes']
-    pierce_time = material_profile['pierce_time']
-    
-    # Time = (distance / speed) * passes + pierce time
-    cut_time_minutes = (path_length_mm / speed) * passes
-    total_time = cut_time_minutes + (pierce_time / 60)  # Convert pierce time to minutes
-    
-    return total_time
-
-def suggest_material_profile(detected_material, detected_thickness):
-    """
-    Suggest the best material profile based on ML detection results
-    
-    Args:
-        detected_material: Material type from ML model ('cardboard', 'fabric', etc.)
-        detected_thickness: Estimated thickness in mm
-        
-    Returns:
-        Dictionary with suggested profile and alternatives
-    """
-    suggestions = {
-        'primary': None,
-        'alternatives': [],
-        'confidence': 'medium'
-    }
-    
-    # Material type mapping from ML classes to profile types
-    ml_to_profile_map = {
-        'cardboard': 'paper',
-        'fabric': 'fabric', 
-        'leather': 'leather',
-        'metal': 'metal',
-        'paper': 'paper',
-        'wood': 'wood'
-    }
-    
-    profile_type = ml_to_profile_map.get(detected_material, 'unknown')
-    
-    if profile_type == 'unknown':
-        return suggestions
-    
-    # Get all profiles of the detected type
-    matching_profiles = get_materials_by_type(profile_type)
-    
-    if not matching_profiles:
-        return suggestions
-    
-    # Find the best match based on thickness
-    best_match = None
-    best_score = float('inf')
-    alternatives = []
-    
-    for profile_id, profile in matching_profiles.items():
-        profile_thickness = profile['thickness']
-        thickness_diff = abs(profile_thickness - detected_thickness)
-        
-        # Score based on thickness difference
-        score = thickness_diff
-        
-        if score < best_score:
-            if best_match:
-                alternatives.append({
-                    'id': best_match[0],
-                    'profile': best_match[1],
-                    'thickness_diff': best_score
-                })
-            best_match = (profile_id, profile)
-            best_score = score
-        else:
-            alternatives.append({
-                'id': profile_id,
-                'profile': profile,
-                'thickness_diff': score
-            })
-    
-    if best_match:
-        suggestions['primary'] = {
-            'id': best_match[0],
-            'profile': best_match[1],
-            'thickness_diff': best_score
-        }
-        
-        # Sort alternatives by thickness difference
-        alternatives.sort(key=lambda x: x['thickness_diff'])
-        suggestions['alternatives'] = alternatives[:3]  # Top 3 alternatives
-        
-        # Determine confidence based on thickness match
-        if best_score <= 0.5:  # Very close match
-            suggestions['confidence'] = 'high'
-        elif best_score <= 1.5:  # Reasonable match
-            suggestions['confidence'] = 'medium'
-        else:  # Poor match
-            suggestions['confidence'] = 'low'
-    
-    return suggestions
-
-def get_profile_summary(profile):
-    """
-    Get a human-readable summary of a material profile
-    
-    Args:
-        profile: Material profile dictionary
-        
-    Returns:
-        String summary of the profile
-    """
-    summary = f"{profile['name']} ({profile['thickness']}mm)"
-    summary += f" - Cut: {profile['cut_speed']}mm/min @ {profile['cut_power']}%"
-    
-    if profile['cut_passes'] > 1:
-        summary += f" x{profile['cut_passes']} passes"
-    
-    return summary
 
 # === ML Integration Functions ===
 
@@ -368,16 +178,12 @@ def ml_material_to_profile(ml_result):
     
     # Map ML material types to our profile names
     material_mapping = {
-        'wood_thin': 'plywood_3mm',
-        'wood_medium': 'plywood_6mm', 
-        'wood_thick': 'plywood_6mm',
-        'acrylic_thin': 'acrylic_3mm',
-        'acrylic_medium': 'acrylic_5mm',
-        'acrylic_thick': 'acrylic_5mm',
         'cardboard': 'cardboard_3mm',
-        'fabric': 'felt_3mm',
+        'fabric': 'felt_2mm',
         'leather': 'leather_2mm',
-        'unknown': None
+        'metal': 'metal_thin',
+        'paper': 'paper_160gsm',
+        'wood': 'plywood_3mm'
     }
     
     profile_name = material_mapping.get(material_name)
@@ -441,29 +247,3 @@ def adjust_profile_for_thickness(base_profile, detected_thickness):
     profile['name'] = f"{profile['name']} (ML: {detected_thickness}mm)"
     
     return profile
-
-def smart_material_detection(image_path=None):
-    """
-    Smart material detection that tries ML first, then falls back to manual
-    
-    Args:
-        image_path: Path to image file (optional)
-        
-    Returns:
-        dict: Material profile
-    """
-    # Try ML detection first if image is provided
-    if image_path:
-        ml_result = detect_material_with_ml(image_path)
-        if ml_result:
-            profile = ml_material_to_profile(ml_result)
-            if profile:
-                print(f"✅ ML detected: {ml_result['material_name']} ({ml_result['thickness']:.1f}mm) "
-                      f"- Confidence: {ml_result['confidence']:.1%}")
-                return profile
-    
-    # Fall back to manual selection
-    print("Using manual material selection...")
-    from ..materials.workflow import choose_material
-    material_id = choose_material()
-    return get_material_profile(material_id)
