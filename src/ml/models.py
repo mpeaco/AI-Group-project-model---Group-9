@@ -6,8 +6,8 @@ import torch.nn as nn
 
 class MaterialNet(nn.Module):
     # CNN for classifying materials - 6 types
-    # Learned from Machine Learning for Language and Vision with Professor Nathan
-
+    # Learned from Machine Learning for Language and Vision with Dr Nathan Duran
+    # Clear implementation that helped inspire this work: https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py
 
     def __init__(self, num_classes=6):
         super().__init__()

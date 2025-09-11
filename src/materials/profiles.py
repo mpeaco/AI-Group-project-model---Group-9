@@ -2,7 +2,7 @@
 # Each material has specific cutting parameters
 
 MATERIAL_PROFILES = {
-    # Paper & Cardboard
+    # Cardboard & Paper
     "cardboard_3mm": {
         "name": "Cardboard 3mm",
         "thickness": 3.0,  # mm
@@ -13,7 +13,7 @@ MATERIAL_PROFILES = {
         "engrave_power": 45,
         "kerf_width": 0.1,  
         "pierce_time": 0.2,  # seconds
-        "material_type": "paper"
+        "material_type": "cardboard"
     },
     
     "paper_160gsm": {
@@ -41,61 +41,6 @@ MATERIAL_PROFILES = {
         "kerf_width": 0.15,
         "pierce_time": 0.5,
         "material_type": "wood"
-    },
-    
-    "plywood_6mm": {
-        "name": "Plywood 6mm", 
-        "thickness": 6.0,
-        "cut_speed": 400,
-        "cut_power": 95,
-        "cut_passes": 2,  # Multiple passes needed
-        "engrave_speed": 800,
-        "engrave_power": 65,
-        "kerf_width": 0.2,
-        "pierce_time": 1.0,
-        "material_type": "wood"
-    },
-    
-    "mdf_3mm": {
-        "name": "MDF 3mm",
-        "thickness": 3.0,
-        "cut_speed": 500,
-        "cut_power": 85,
-        "cut_passes": 1,
-        "engrave_speed": 900,
-        "engrave_power": 60,
-        "kerf_width": 0.18,
-        "pierce_time": 0.6,
-        "material_type": "wood"
-    },
-    
-    # Acrylic Materials
-    "acrylic_3mm": {
-        "name": "Acrylic 3mm",
-        "thickness": 3.0,
-        "cut_speed": 300,
-        "cut_power": 70,  # Lower power to avoid melting
-        "cut_passes": 1,
-        "engrave_speed": 1500,
-        "engrave_power": 40,
-        "kerf_width": 0.1,
-        "pierce_time": 0.3,
-        "material_type": "acrylic",
-        "notes": "Reduce power to 55-65% for colored acrylic"
-    },
-    
-    "acrylic_5mm": {
-        "name": "Acrylic 5mm",
-        "thickness": 5.0,
-        "cut_speed": 200,  # Slow speed for smooth edge
-        "cut_power": 90,   # High power to prevent striations
-        "cut_passes": 1,
-        "engrave_speed": 1200,
-        "engrave_power": 50,
-        "kerf_width": 0.12,
-        "pierce_time": 0.8,
-        "material_type": "acrylic",
-        "notes": "Very slow speed prevents visible striations on edge"
     },
     
     # Fabric & Leather
@@ -140,20 +85,6 @@ MATERIAL_PROFILES = {
         "pierce_time": 2.0, # Longer pierce time
         "material_type": "metal",
         "notes": "Only very thin metal sheets. Requires special lens and high power. Use with extreme caution."
-    },
-    
-    "aluminum_foil": {
-        "name": "Aluminum Foil",
-        "thickness": 0.1,
-        "cut_speed": 800,
-        "cut_power": 30,
-        "cut_passes": 1,
-        "engrave_speed": 1200,
-        "engrave_power": 25,
-        "kerf_width": 0.02,
-        "pierce_time": 0.1,
-        "material_type": "metal",
-        "notes": "Decorative foil only. Not structural metal."
     }
 }
 

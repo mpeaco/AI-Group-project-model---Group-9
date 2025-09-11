@@ -85,7 +85,7 @@ def main():
     
     # Make a folder with timestamp for output in sample_results
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_folder = r"C:\Users\MillerN\Desktop\AI\Group Project\AI-Group-project-model---Group-9/src/sample_data/sample_results/output_results"
+    output_folder = f"sample_data/sample_results/output_results_{timestamp}"
     os.makedirs(output_folder, exist_ok=True)
     print("Output folder:", output_folder)
     

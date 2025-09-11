@@ -9,6 +9,9 @@ from PIL import Image
 from torchvision import transforms
 from models import load_model
 
+
+"""The study inspired by BLOrange-AMD:
+https://github.com/pytorch/examples/blob/main/imagenet/main.py#L321"""
 class MaterialRecognition:
     def __init__(self):
         # the 6 materials we can detect

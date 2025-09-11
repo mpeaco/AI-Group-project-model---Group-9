@@ -13,6 +13,10 @@ import numpy as np
 from models import MaterialNet, save_model, count_params
 from sklearn.metrics import classification_report
 
+
+"""This study inspired by previous works:
+By hysts ML Engineer: https://github.com/hysts/pytorch_image_classification/blob/master/pytorch_image_classification/datasets/datasets.py
+"""
 class MaterialDataset(Dataset):
     # dataset class for loading images
     def __init__(self, img_paths, labels, transform=None):
