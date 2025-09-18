@@ -34,8 +34,8 @@ def convertPipelineFullKNN(fileName):
     temp = [-10, -10]
     for line in linesOperatable:
         #print(line)
-        linesTemp.append(CuttingPoint(line[0][0], line[0][1]))
-        linesTemp.append(CuttingPoint(line[1][0], line[1][1]))
+        linesTemp.append(CuttingPoint(line[0][0], line[0][1], line[2]))
+        linesTemp.append(CuttingPoint(line[1][0], line[1][1], line[2]))
         if line[0] == temp:
             temp2 = CuttingPath([line2 for line2 in linesTemp])
             linesRunning.append(temp2)
@@ -60,8 +60,21 @@ def convertPipelineFullKNN(fileName):
 
     time2 = time.time()
     print("time", time2-time1)
+    output = []
+    stored = [-1, -1, -1]
+    for subpath in optimisedPath:
+        for point in subpath.points:
+            if point.index == stored[2]:
+                output.append([[stored[0], stored[1]], [point.x, point.y], [point.index, 0]])
+            else:
+                stored = [point.x, point.y, point.index]
+        #print(subpath)
     #preview(bestGenes)
+
+    fileNameOutput = fileName[:-4] + "KNN.svg"
+    savers = restoreFile(linesIndex, output)
+    writeSvg(savers, fileNameOutput)
     messagebox.showinfo(
         title='Selected File',
-        message=("File saved as "+fileName) )
+        message=("File saved as "+fileNameOutput) )
     return

@@ -4,10 +4,11 @@ from typing import List, Dict
 
 # class for a point in the cutting path
 class CuttingPoint:
-    def __init__(self, x, y, is_pierce=False, operation_type="cut"):
+    def __init__(self, x, y, index, is_pierce=False, operation_type="cut"):
         # Basic properties of a point
         self.x = x  # x coordinate
         self.y = y  # y coordinate
+        self.index = index
         self.is_pierce = is_pierce  
         self.operation_type = operation_type  
     
@@ -68,7 +69,7 @@ class PathOptimizer:
         
         result = []
         paths_left = paths.copy()
-        current_pos = CuttingPoint(0, 0)  
+        current_pos = CuttingPoint(0, 0, -1)  
         
         # Process all paths
         while paths_left:

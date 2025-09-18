@@ -59,10 +59,10 @@ def convertPipelineFullGA(fileName, progressbar):
 
     savers = restoreFile(linesIndex, bestGenes)
 
-    fileNameOutput = fileName[:-4] + ".svg"
+    fileNameOutput = fileName[:-4] + "GA.svg"
     writeSvg(savers, fileNameOutput)
 
     messagebox.showinfo(
         title='Selected File',
-        message=("File saved as "+fileName) )
+        message=("File saved as "+fileNameOutput) )
     return
