@@ -4,7 +4,8 @@ from tkinter import *
 from PIL import ImageTk,Image
 from tkinter.messagebox import showinfo
 import os
-from fullPipeline import convertPipelineFull
+from fullPipelineKNN import convertPipelineFullKNN
+from fullPipelineGA import convertPipelineFullGA
 from tkinter import ttk
 import tkinter as tk
 
@@ -12,7 +13,7 @@ picturesDir = os.path.join(os.path.expanduser("~"), "Pictures")
 
 global progressbar
 
-class pipelineWindow(tk.Toplevel):
+class pipelineWindowGA(tk.Toplevel):
     def __init__(self, parent, fileName):
         super().__init__(parent)
 
@@ -21,12 +22,12 @@ class pipelineWindow(tk.Toplevel):
 
         progressbar = ttk.Progressbar(self, maximum=10000)
         progressbar.place(x=50, y=30, width=200)
-        convertPipelineFull(fileName, progressbar)
+        convertPipelineFullGA(fileName, progressbar)
         progressbar.destroy()
         self.destroy()
 
-def makePipelineWindow(fileName):
-    window = pipelineWindow(root, fileName)
+def makePipelineWindowGA(fileName):
+    window = pipelineWindowGA(root, fileName)
     window.grab_set()
 
 def resizeInRatio(image, maxSize=(300, 300)):
@@ -53,14 +54,17 @@ def selectFile():
     imageLabel.config(image=photo)
     imageLabel.image = photo
 
-    convertButton = Button(root, text="Convert Image", command=lambda: makePipelineWindow(fileName))    
+    convertButton = Button(root, text="Convert Image KNN", command=lambda: convertPipelineFullKNN(fileName)) 
     convertButton.grid(row=5, column=1, padx=20, pady=(10, 0))
+
+    convertButton = Button(root, text="Convert Image GA", command=lambda: makePipelineWindowGA(fileName))    
+    convertButton.grid(row=6, column=1, padx=20, pady=(10, 0))
 
 
 
 root = Tk()
 root.title("Converter")
-root.geometry("470x500")
+root.geometry("600x600")
 root.configure(bg="paleturquoise")
 
 welcome_label =Label(root, text="Welcome to The Program.", bg="paleturquoise") 

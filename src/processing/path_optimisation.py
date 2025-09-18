@@ -24,17 +24,14 @@ class CuttingPoint:
 
 # Class to represent a cutting path
 class CuttingPath:
-    def __init__(self, points, index, is_closed=False, priority=1):
+    def __init__(self, points, is_closed=False, priority=1):
         # List of points in the path
         self.points = points
         # Is the path closed (first point connects to last point)
         self.is_closed = is_closed
         # Priority of cutting (1 is highest)
         self.priority = priority
-        self.index = index
     
-    def getIndex(self):
-        return self.index
     
     # Calculate the total length of the path
     def length(self):
@@ -86,7 +83,6 @@ class PathOptimizer:
                     continue
 
                 # Distance calculation
-                print("POINTS", path.points)
                 start = path.points[0]
                 dist = math.sqrt((current_pos.x - start.x)**2 + (current_pos.y - start.y)**2)
                 if dist < min_dist:

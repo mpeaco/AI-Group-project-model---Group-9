@@ -66,15 +66,18 @@ def restoreFile(linesOriginal, linesMixed):
     temp2 = np.arange(0, len(linesOriginal))
     body = []
     for line in linesMixed:
-        temp = linesOriginal[line[2]].split(" ")
-        if line[0] == [float(temp[2]), float(temp[3])]:
-            if line[1] == [float(temp[-2]), float(temp[-1][:-3])]:
+        temp = linesOriginal[int(line[2][0])].split(" ")
+        if np.array_equal(line[0], [float(temp[2]), float(temp[3])]):
+            if np.array_equal(line[1], float(temp[-2]), float(temp[-1][:-3])):
                 temp2 = np.delete(temp2, np.where(temp2 == line[2]))
                 body.append(linesOriginal[line[2]])
             else:
-                print("Error in line end coordinates")
-        else:
-            print("Error in line start coordinates")
+                pass
+        elif np.array_equal(line[0], float(temp[-2]), float(temp[-1][:-3])):
+            if np.array_equal(line[1], [float(temp[2]), float(temp[3])]):
+                body.append(linesOriginal[line[2]])
+            else:
+                pass
     stored = -1
     header = []
     footer = []
