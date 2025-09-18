@@ -16,6 +16,7 @@
 import numpy as np
 import math
 from relative_to_absolute import writeSvg
+import matplotlib.pyplot as plt
 
 
 def judgeDistance(linesList):
@@ -92,3 +93,21 @@ def restoreFile(linesOriginal, linesMixed):
     del temp2
     output = header + body + footer
     return output
+
+def preview(linesList):
+    
+    # creates a pyplot graph showing the current path of printer
+    # assumes input in the format:
+    # [[[point1x, point1y], [point2x, point2y], (artitrary beyond these points)], ...]
+    end = linesList[0][0]
+    for line in linesList:
+        start = line[0]
+        if np.array_equal(start, end) != True:
+            plt.plot([start[0], end[0]], [start[1], end[1]], color="blue", linestyle="dashed", zorder=1)
+        end = line[1]
+        
+        plt.plot([start[0], end[0]], [start[1], end[1]], color="red", linestyle="dashed", zorder=3)
+
+        plt.scatter([start[0], end[0]], [start[1], end[1]], color="black", zorder=2)
+
+    plt.show()
