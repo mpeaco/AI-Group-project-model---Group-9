@@ -6,19 +6,10 @@ import re
 #potrace only outputs relative coordinates, which will not work for our purposes.
 #as such, i need to transform them into absolute coordinates.
 #in order to pass to the pathfinder AI, the SVG then needs to be split into individual lines
-"""
-
-# TODO
-
-# writ this ugly if/ else loop as dictionary that handles the commands
-# thisll be much faster and prettier
-
-"""
 
 # relativeToAbsolute:
 # takes: file address
 # outputs: list - contains an svg file, abstracted as
-# input:  
 
 def operateHeader(header):
     h2 = header.split("\n")
@@ -81,19 +72,14 @@ def operatel(line, currentPos):
 
 def relativeToAbsolute(file):
     output = []
-    print("A")
     with open(file, "r") as file:
         svgData = file.read()
-
-    print("B")
 
     header, *data2 = svgData.split("<path d")
     header = operateHeader(header)
     output.append(header)
     
     svgData = svgData.replace("\n", " ").replace("\r", " ")
-
-    print("C")
 
     data2 = svgData.split("d=")
     data2.pop(0)
@@ -109,9 +95,8 @@ def relativeToAbsolute(file):
                 temp = [float(seg) for seg in temp if seg != '']
                 if len(temp) == 2:
                     currentPosition, storedPosition = temp, temp
-                    #output.append(("<path d=\"M" + str(currentPosition[0]) + " " + str(currentPosition[1]) + "\"/>"))
                 else:
-                    print("error 1M")
+                    print("error")
             
             elif line[0] == "m":
                 temp = line.split(" ")
@@ -120,9 +105,8 @@ def relativeToAbsolute(file):
                 if len(temp) == 2:
                     instruct, currentPosition = operatem(temp, currentPosition)
                     storedPosition = currentPosition
-                    #output.append(("<path d=\"M" + instruct + "\"/>"))
                 else:
-                    print("error 1m")
+                    print("error")
 
 
             elif line[0] == "c":
@@ -136,7 +120,7 @@ def relativeToAbsolute(file):
                         arc, currentPosition = operatec(temp[k:k+6], currentPosition)
                         output.append((temp2 + arc + "\"/>"))
                 else:
-                    print("error 2")
+                    print("error")
             
             elif line[0] == "l":
                 temp = line.split(" ")
@@ -148,7 +132,7 @@ def relativeToAbsolute(file):
                         lineOutput, currentPosition = operatel(temp[k:k+2], currentPosition)
                         output.append((temp2 + lineOutput + "\"/>"))
                 else:
-                    print("error 3")
+                    print("error")
 
             elif line[0] in ("Z", "z"):
                 temp2 = ("<path d=\"L " + str(currentPosition[0]) + " " + str(currentPosition[1]) + " " + str(storedPosition[0]) + " " + str(storedPosition[1]) + "\"/>")
@@ -156,25 +140,13 @@ def relativeToAbsolute(file):
                 currentPosition = storedPosition
 
             else:
-                print("ERROR LINE: " + line)
+                print("error")
 
-        print("split")
     output.append("\n</g>\n</svg>")
-    #print(output)
     return output
 
 def writeSvg(pathList, fileName):
     with open(fileName, "w") as file:
-        #for segment in pathList:
         for line in pathList:
-            #print(line)
             file.write(line)
             file.write("\n")
-
-def main():
-    pathGuy = r"C:\Users\MillerN\Desktop\AI\Group Project\processed_bitmap_image.svg" # your path here
-
-    writeSvg(relativeToAbsolute(pathGuy), "output.svg")
-
-if __name__ == "__main__":
-    main()

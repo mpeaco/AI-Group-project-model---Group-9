@@ -18,6 +18,23 @@ To run the main program the main.py file is located in the `src` directory. In t
 
 The image processing can be done using opencv or pyvips. Pyvips can be used by passing the `-p` flag when running the main.py file.
 
+### Alternative Run Methods
+
+For convenience, you can also run the project using the provided scripts:
+
+- On Windows using Command Prompt: Double-click `run_project.bat`
+- On Windows using PowerShell: Right-click `run_project.ps1` and select "Run with PowerShell"
+
+These scripts automatically navigate to the source directory and run the program using the project's virtual environment.
+
 ## Dependencies
 
-- PoTrace
+./venv/Scripts/Activate.ps1
+
+
+## To train the model
+cd C:\Users\sangn\OneDrive\Documents\GitHub\AI-Group-project-model---Group-9\src\ml
+
+then run:
+
+C:/Users/sangn/OneDrive/Documents/GitHub/AI-Group-project-model---Group-9/venv/Scripts/python.exe train.py
